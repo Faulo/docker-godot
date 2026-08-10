@@ -1,33 +1,67 @@
 # Godot Docker Image
 
-This repository builds Linux and Windows Docker images for a Godot image that auto-installs Godot and Blender (optinal) on startup based on environment variables.
+This repository builds Linux and Windows Docker images that install the requested stable Godot and optional Blender versions when their wrapper commands are invoked. Downloads are stored in volumes and reused by later containers.
 
 ## Image Contents
 
 Both image variants provide:
 
-- TODOD
+- The standard Godot editor and matching export templates selected by `GODOT_VERSION`.
+- Blender selected by `BLENDER_VERSION`, when configured.
+- Thin `godot` and `blender` wrapper commands that install and launch the selected versions.
+
+The image currently supports standard Godot 4 builds. Godot .NET/Mono builds and a selector for choosing between standard and .NET builds will be added separately.
+
+## Runtime Setup
+
+The image is designed for direct one-off use:
+
+```text
+docker run --rm --env GODOT_VERSION=4 faulo/godot:latest godot --version
+```
+
+The `godot` wrapper performs the following work before starting the selected Godot executable:
+
+1. If `BLENDER_VERSION` is set, resolve and install Blender.
+2. Resolve and install Godot and its matching export templates.
+3. Publish the readiness state consumed by the Docker health check.
+4. Start Godot with the original arguments and return its exit code.
+
+Godot imports `.blend` files by invoking an executable configured in its editor settings. When Blender is selected, the `godot` wrapper preserves the other editor settings and points `filesystem/import/blender/blender_path` at the image's stable `blender` wrapper before Godot starts. The `blender` wrapper can also be invoked directly and installs only Blender.
+
+Installations use a lock in each shared volume, download into temporary directories, verify the publisher-provided SHA-512 or SHA-256 checksum, and publish a completed version directory atomically. This permits concurrent containers to share the same named volumes safely.
+
+The Docker health check only reports wrapper readiness; it never performs installation. The wrapper publishes readiness immediately before the requested Godot or Blender process starts, and Docker reports the container as `healthy` when the next probe observes it. Short-lived commands may exit before Docker runs its first health probe, while still returning the wrapped command's exit status normally.
 
 ## Configuration
 
-On startup, the docker health probe uses these environment variables to set up the image:
+The wrappers use these environment variables:
 
-- `GODOT_VERSION` selects the binary and export templates of Godot to install.
-- `BLENDER_VERSION`, if set to a semantic version string, selects the Blender binary to install.
+- `GODOT_VERSION` is required by `godot` and selects the standard Godot editor and export templates.
+- `BLENDER_VERSION` is required by `blender`. It is optional for `godot`; when set, Blender is installed before Godot starts.
 
-The container also proves thin wrappers called `godot` and `blender` that forward their parameters to the proper executable, based on those environment variables.
+Only stable releases are considered. A selector that cannot be resolved to a stable release is an error, as is an invalid selector.
 
-## Versioning
+## Version Selectors
 
-For both `GODOT_VERSION` and `BLENDER_VERSION`, this image considers them as tho they came with the semver selector `~`, that is, it installs the latest version that still matches the version string given.
+Selectors contain one to three numeric components and use prefix-compatible semantics:
 
-For example, at the time of writing, specifying `BLENDER_VERSION=4.4` would install Blender `4.4.3`. To install `4.4.0` exactly, specify `BLENDER_VERSION=4.4.0`. Note this differs from how Godot itself advertises its versions, where Godot `4.1` is `4.1.0`, whereas specifying `GODOT_VERSION=4.1` would install the latest available `4.1.x` (which may or may not be `4.1.0`.
+- `4` selects the latest stable `4.x.y` release.
+- `4.3` selects the latest stable `4.3.x` release.
+- `4.3.0` selects exactly `4.3.0`.
+
+Godot itself labels a release without a patch component, such as `4.3-stable`, where semantic versioning would normally write `4.3.0`. The selector still treats `GODOT_VERSION=4.3` as the complete `4.3.x` series and `GODOT_VERSION=4` as the complete `4.x.y` series.
+
+Godot installations use the exact version identifier expected by their export templates. For example, standard Godot `4.3` is stored under `4.3.stable`. A future .NET installation would use a distinct identifier such as `4.3.stable.mono`.
+
+Floating selectors are resolved each time a wrapper starts. If a newer matching stable version has been published, it is installed alongside earlier versions rather than replacing them.
 
 ## Volumes
 
-To reuse the downloaded executables across sessions, the image advertises its mount points via `VOLUME`. In particular, these folders should be mounted:
+Mount the advertised binary and template locations to reuse downloads across containers.
 
 On Linux:
+
 ```yaml
 services:
   godot:
@@ -35,14 +69,16 @@ services:
     init: true
     gpus: all
     environment:
-      GODOT_VERSION: 4.6
-      BLENDER_VERSION: 5
+      GODOT_VERSION: "4.6"
+      BLENDER_VERSION: "5"
     volumes:
       - godot-binaries:/godot/binaries
       - godot-templates:/godot/export_templates
       - blender:/blender
 ```
+
 On Windows:
+
 ```yaml
 services:
   godot:
@@ -50,16 +86,36 @@ services:
     devices:
       - "class/5B45201D-F2F2-4F3B-85BB-30FF1F953599"
     environment:
-      GODOT_VERSION: 4.6
-      BLENDER_VERSION: 5
+      GODOT_VERSION: "4.6"
+      BLENDER_VERSION: "5"
     volumes:
       - godot-binaries:C:/godot/binaries
       - godot-templates:C:/godot/export_templates
-      - blender:/blender
+      - blender:C:/blender
 ```
 
-The image sets up Godot's configuration to not use the default locations of `/root/.local/share/godot/export_templates` and `C:/Users/ContainerAdministrator/AppData/Roaming/Godot/export_templates` to instead use `/godot/export_templates` and `C:/godot/export_templates`, respectively.
+Godot's standard export-template directory is linked to `/godot/export_templates` on Linux and `C:/godot/export_templates` on Windows. Each installed Godot version has its own binary and export-template directory named with the exact template identifier. Each Blender version is placed in its own directory named with its full semantic version.
 
-Inside `godot/binaries` and `blender`, each installed version is placed in its own directory with a name matching its full version string (again noting Godot's `4` is treated as `4.0.0` here). Cleanup of unused versions is outside the scope of this image.
+Cleanup of unused versions is outside the scope of this image.
 
-Also note the docker-compose example above forwards the GPU to the container, which can speed up graphics processing when available.
+The Compose examples also forward the host GPU. GPU passthrough is optional and depends on the Docker daemon, host drivers, container isolation, and Godot or Blender rendering configuration.
+
+## Local Build and Test
+
+The local setup expects explicitly named `linux` and `windows` Docker contexts. Both builds use the repository root as their build context:
+
+```text
+docker --context linux build --pull --tag tmp/godot:latest --file linux/Dockerfile .
+docker --context windows build --pull --tag tmp/godot:latest --file windows/Dockerfile .
+```
+
+Only images under the disposable `tmp/` namespace are used by the batch scripts. The platform-specific Explorer entry points are:
+
+```text
+docker-build-linux.bat
+docker-build-windows.bat
+docker-test-linux.bat
+docker-test-windows.bat
+```
+
+The test configuration in `.env` installs the latest stable Godot 4 and Blender 4 releases into named volumes, then runs `godot --version`.
