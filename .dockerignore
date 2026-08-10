@@ -1,6 +1,8 @@
 **
 !common/
 !common/**
+common/bin/
+common/obj/
 !linux/
 !linux/**
 !windows/

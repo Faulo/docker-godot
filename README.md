@@ -9,6 +9,7 @@ Both image variants provide:
 - The standard Godot editor and matching export templates selected by `GODOT_VERSION`.
 - Blender selected by `BLENDER_VERSION`, when configured.
 - Thin `godot` and `blender` wrapper commands that install and launch the selected versions.
+- The shared `/godot/docker-godot` setup executable used by both wrappers and the health check.
 
 The image currently supports standard Godot 4 builds. Godot .NET/Mono builds and a selector for choosing between standard and .NET builds will be added separately.
 
@@ -20,6 +21,8 @@ The image is designed for direct one-off use:
 docker run --rm --env GODOT_VERSION=4 faulo/godot:latest godot --version
 ```
 
+The working directory is `/godot` on Linux and `C:/godot` on Windows. All image-owned wrapper and setup files live there; only command-discovery links are placed outside that directory on Linux.
+
 The `godot` wrapper performs the following work before starting the selected Godot executable:
 
 1. If `BLENDER_VERSION` is set, resolve and install Blender.
@@ -27,9 +30,9 @@ The `godot` wrapper performs the following work before starting the selected God
 3. Publish the readiness state consumed by the Docker health check.
 4. Start Godot with the original arguments and return its exit code.
 
-Godot imports `.blend` files by invoking an executable configured in its editor settings. When Blender is selected, the `godot` wrapper preserves the other editor settings and points `filesystem/import/blender/blender_path` at the image's stable `blender` wrapper before Godot starts. The `blender` wrapper can also be invoked directly and installs only Blender.
+Godot imports `.blend` files by invoking an executable configured in its editor settings. When Blender is selected, the `godot` wrapper preserves the other editor settings and points `filesystem/import/blender/blender_path` at the resolved versioned Blender executable before Godot starts. This lets Godot manage Blender's persistent import process directly. The `blender` wrapper can also be invoked directly and installs only Blender.
 
-Installations use a lock in each shared volume, download into temporary directories, verify the publisher-provided SHA-512 or SHA-256 checksum, and publish a completed version directory atomically. This permits concurrent containers to share the same named volumes safely.
+Installations use a lock in each shared volume, resume interrupted downloads into temporary directories, verify the publisher-provided SHA-512 or SHA-256 checksum, and publish a completed version directory atomically. This permits concurrent containers to share the same named volumes safely. Version resolution, locking, downloads, verification, readiness, editor configuration, and process launching share one C# implementation across Linux and Windows; only platform paths, artifact names, and archive extraction differ.
 
 The Docker health check only reports wrapper readiness; it never performs installation. The wrapper publishes readiness immediately before the requested Godot or Blender process starts, and Docker reports the container as `healthy` when the next probe observes it. Short-lived commands may exit before Docker runs its first health probe, while still returning the wrapped command's exit status normally.
 
