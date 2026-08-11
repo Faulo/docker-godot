@@ -100,7 +100,7 @@ internal sealed class RuntimeSetup
             using (AcquireLock(platform.GodotRoot))
             using (AcquireLock(platform.TemplateRoot))
             {
-                godot = InstallGodot(godotSelector);
+                godot = FindInstalledGodot(godotSelector) ?? InstallGodot(godotSelector);
             }
             WriteGodotCache(godotSelector, godot);
         }
@@ -132,10 +132,100 @@ internal sealed class RuntimeSetup
         }
         else
         {
-            blender = WithLock(platform.BlenderRoot, delegate { return InstallBlender(selector); });
+            blender = WithLock(platform.BlenderRoot, delegate
+            {
+                return FindInstalledBlender(selector) ?? InstallBlender(selector);
+            });
             WriteBlenderCache(selector, blender);
         }
         return blender;
+    }
+
+    private string FindInstalledGodot(string selector)
+    {
+        ValidateSelector("GODOT_VERSION", selector);
+        if (!Directory.Exists(platform.GodotRoot))
+        {
+            return null;
+        }
+
+        Regex directoryName = new Regex("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?\\.stable$");
+        foreach (string directory in Directory.GetDirectories(platform.GodotRoot)
+            .OrderByDescending(path => ParseInstalledVersion(Path.GetFileName(path), directoryName)))
+        {
+            Match match = directoryName.Match(Path.GetFileName(directory));
+            if (!match.Success)
+            {
+                continue;
+            }
+            Version version = VersionFromMatch(match);
+            if (!SelectorMatches(selector, version))
+            {
+                continue;
+            }
+            string installId = Path.GetFileName(directory);
+            string tag = installId.Substring(0, installId.Length - ".stable".Length) + "-stable";
+            string executable = Path.Combine(directory, platform.GodotExecutable(tag));
+            string templateMarker = Path.Combine(platform.TemplateRoot, installId, "version.txt");
+            if (File.Exists(executable) && File.Exists(templateMarker))
+            {
+                return executable;
+            }
+        }
+        return null;
+    }
+
+    private string FindInstalledBlender(string selector)
+    {
+        ValidateSelector("BLENDER_VERSION", selector);
+        if (!Directory.Exists(platform.BlenderRoot))
+        {
+            return null;
+        }
+
+        foreach (string directory in Directory.GetDirectories(platform.BlenderRoot)
+            .OrderByDescending(path => ParseVersionOrZero(Path.GetFileName(path))))
+        {
+            Version version;
+            if (!Version.TryParse(Path.GetFileName(directory), out version) || !SelectorMatches(selector, version))
+            {
+                continue;
+            }
+            string executable = Path.Combine(directory, platform.BlenderExecutable);
+            if (File.Exists(executable))
+            {
+                return executable;
+            }
+        }
+        return null;
+    }
+
+    private static Version ParseInstalledVersion(string value, Regex pattern)
+    {
+        Match match = pattern.Match(value);
+        return match.Success ? VersionFromMatch(match) : new Version(0, 0, 0);
+    }
+
+    private static Version VersionFromMatch(Match match)
+    {
+        return new Version(
+            int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
+            int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture),
+            match.Groups[3].Success ? int.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture) : 0);
+    }
+
+    private static Version ParseVersionOrZero(string value)
+    {
+        Version version;
+        return Version.TryParse(value, out version) ? version : new Version(0, 0, 0);
+    }
+
+    private static bool SelectorMatches(string selector, Version version)
+    {
+        string[] parts = selector.Split('.');
+        return int.Parse(parts[0], CultureInfo.InvariantCulture) == version.Major
+            && (parts.Length < 2 || int.Parse(parts[1], CultureInfo.InvariantCulture) == version.Minor)
+            && (parts.Length < 3 || int.Parse(parts[2], CultureInfo.InvariantCulture) == version.Build);
     }
 
     public bool IsHealthy()
