@@ -85,16 +85,24 @@ internal sealed class RuntimeSetup
         string blenderSelector = Environment.GetEnvironmentVariable("BLENDER_VERSION");
         if (!string.IsNullOrWhiteSpace(blenderSelector))
         {
-            blender = WithLock(platform.BlenderRoot, delegate { return InstallBlender(blenderSelector); });
-            WriteBlenderCache(blenderSelector, blender);
+            blender = GetOrInstallBlender(blenderSelector);
             readyPaths.Add(blender);
         }
 
+        string[] cached = ReadLinesIfPresent(Path.Combine(platform.StateRoot, "godot"));
         string godot;
-        using (AcquireLock(platform.GodotRoot))
-        using (AcquireLock(platform.TemplateRoot))
+        if (cached.Length == 3 && cached[0] == godotSelector && File.Exists(cached[1]) && File.Exists(cached[2]))
         {
-            godot = InstallGodot(godotSelector);
+            godot = cached[1];
+        }
+        else
+        {
+            using (AcquireLock(platform.GodotRoot))
+            using (AcquireLock(platform.TemplateRoot))
+            {
+                godot = InstallGodot(godotSelector);
+            }
+            WriteGodotCache(godotSelector, godot);
         }
 
         if (readyPaths.Count > 0)
@@ -109,6 +117,13 @@ internal sealed class RuntimeSetup
     public string PrepareBlender()
     {
         string selector = RequireSelector("BLENDER_VERSION");
+        string blender = GetOrInstallBlender(selector);
+        WriteReady(new[] { blender });
+        return blender;
+    }
+
+    private string GetOrInstallBlender(string selector)
+    {
         string[] cached = ReadLinesIfPresent(Path.Combine(platform.StateRoot, "blender"));
         string blender;
         if (cached.Length == 2 && cached[0] == selector && File.Exists(cached[1]))
@@ -120,7 +135,6 @@ internal sealed class RuntimeSetup
             blender = WithLock(platform.BlenderRoot, delegate { return InstallBlender(selector); });
             WriteBlenderCache(selector, blender);
         }
-        WriteReady(new[] { blender });
         return blender;
     }
 
@@ -376,6 +390,14 @@ internal sealed class RuntimeSetup
     {
         Directory.CreateDirectory(platform.StateRoot);
         File.WriteAllLines(Path.Combine(platform.StateRoot, "blender"), new[] { selector, executable });
+    }
+
+    private void WriteGodotCache(string selector, string executable)
+    {
+        string installId = Path.GetFileName(Path.GetDirectoryName(executable));
+        string templateMarker = Path.Combine(platform.TemplateRoot, installId, "version.txt");
+        Directory.CreateDirectory(platform.StateRoot);
+        File.WriteAllLines(Path.Combine(platform.StateRoot, "godot"), new[] { selector, executable, templateMarker });
     }
 
     private void WriteReady(IEnumerable<string> paths)
