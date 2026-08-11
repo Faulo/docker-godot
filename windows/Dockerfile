@@ -11,7 +11,6 @@ COPY common/Program.cs C:/godot/Program.cs
 RUN New-Item -ItemType Directory -Force C:/godot/binaries, C:/godot/export_templates, C:/blender, C:/run/docker-godot | Out-Null; \
     $godotData = 'C:/Users/ContainerAdministrator/AppData/Roaming/Godot'; \
     New-Item -ItemType Directory -Force $godotData | Out-Null; \
-    New-Item -ItemType Junction -Path "$godotData/export_templates" -Target C:/godot/export_templates | Out-Null; \
     & C:/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe /nologo /optimize+ /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll '/out:C:\godot\docker-godot.exe' 'C:\godot\Program.cs'; \
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; \
     Copy-Item C:/godot/docker-godot.exe C:/godot/godot.exe; \
@@ -21,8 +20,7 @@ RUN New-Item -ItemType Directory -Force C:/godot/binaries, C:/godot/export_templ
     & C:/godot/godot.exe 2>&1 | Out-Null; \
     $launcherExit = $LASTEXITCODE; \
     $ErrorActionPreference = 'Stop'; \
-    if ($launcherExit -eq 0) { throw 'godot launcher unexpectedly succeeded without GODOT_VERSION' }; \
-    Remove-Item C:/godot/binaries/.docker-godot.lock -Force
+    if ($launcherExit -eq 0) { throw 'godot launcher unexpectedly succeeded without GODOT_VERSION' }
 
 ENV PATH="C:\godot;C:\Windows\system32;C:\Windows;C:\Windows\System32\WindowsPowerShell\v1.0"
 

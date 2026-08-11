@@ -78,6 +78,8 @@ internal sealed class RuntimeSetup
 
     public string PrepareGodot()
     {
+        string godotSelector = RequireSelector("GODOT_VERSION");
+        platform.EnsureTemplateLink();
         List<string> readyPaths = new List<string>();
         string blender = null;
         string blenderSelector = Environment.GetEnvironmentVariable("BLENDER_VERSION");
@@ -92,7 +94,7 @@ internal sealed class RuntimeSetup
         using (AcquireLock(platform.GodotRoot))
         using (AcquireLock(platform.TemplateRoot))
         {
-            godot = InstallGodot(RequireSelector("GODOT_VERSION"));
+            godot = InstallGodot(godotSelector);
         }
 
         if (readyPaths.Count > 0)
@@ -396,7 +398,7 @@ internal sealed class RuntimeSetup
 
     private static void Log(string message)
     {
-        Console.Error.WriteLine("docker-godot: " + message);
+        Console.Out.WriteLine("docker-godot: " + message);
     }
 }
 
@@ -544,7 +546,7 @@ internal static class Download
                 last = exception;
                 if (attempt < 5)
                 {
-                    Console.Error.WriteLine("docker-godot: download interrupted; resuming attempt " + (attempt + 1) + " of 5");
+                    Console.Out.WriteLine("docker-godot: download interrupted; resuming attempt " + (attempt + 1) + " of 5");
                     Thread.Sleep(attempt * 2000);
                 }
             }
@@ -699,6 +701,27 @@ internal sealed class PlatformInfo
     {
         string suffix = IsWindows ? "windows-x64\\.zip" : "linux-x64\\.tar\\.xz";
         return "blender-(" + Regex.Escape(major) + "\\." + Regex.Escape(minor) + "\\.[0-9]+)-" + suffix;
+    }
+
+    public void EnsureTemplateLink()
+    {
+        if (!IsWindows)
+        {
+            return;
+        }
+
+        string link = Path.Combine(GodotSettingsRoot, "export_templates");
+        Directory.CreateDirectory(Path.GetDirectoryName(link));
+        if (Directory.Exists(link))
+        {
+            FileAttributes attributes = File.GetAttributes(link);
+            if ((attributes & FileAttributes.ReparsePoint) == 0 && Directory.EnumerateFileSystemEntries(link).Any())
+            {
+                throw new IOException("Godot export template path exists and is not an image-managed junction: " + link);
+            }
+            Directory.Delete(link, false);
+        }
+        ProcessRunner.Run("cmd.exe", new[] { "/d", "/c", "mklink", "/J", link, TemplateRoot }, true);
     }
 }
 
