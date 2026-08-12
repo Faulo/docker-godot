@@ -11,6 +11,10 @@ Both image variants provide:
 - Thin `godot` and `blender` wrapper commands that install and launch the selected versions.
 - The shared `/godot/docker-godot` setup executable used by both wrappers and the health check.
 
+The Windows image also provides PowerShell 7 as `pwsh`, allowing CI scripts to
+use modern native-command output and error handling instead of Windows
+PowerShell 5.1 behavior.
+
 The image currently supports standard Godot 4 builds. Godot .NET/Mono builds and a selector for choosing between standard and .NET builds will be added separately.
 
 ## Runtime Setup

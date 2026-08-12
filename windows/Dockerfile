@@ -1,12 +1,30 @@
 ARG OS_BASE=1809
 FROM mcr.microsoft.com/windows:${OS_BASE}
 
+ARG POWERSHELL_VERSION=7.6.4
+ARG POWERSHELL_SHA256=80832551c52809301e6071c8bac977beb5a2f1ec953eb4db9f94deb953333793
+
 SHELL ["C:/Windows/System32/WindowsPowerShell/v1.0/powershell", "-ExecutionPolicy", "Bypass", "-NonInteractive", "-NoProfile", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 USER ContainerAdministrator
 WORKDIR C:/godot
 
 COPY common/Program.cs C:/godot/Program.cs
+
+# Let the daemon fetch this large file; legacy Windows container networking is
+# prohibitively slow. The publisher checksum is verified before extraction.
+ADD https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/PowerShell-${POWERSHELL_VERSION}-win-x64.zip C:/powershell.zip
+
+# The ZIP package works on Server Core and avoids installer side effects.
+RUN $archive = 'C:/powershell.zip'; \
+    $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash; \
+    if ($actual -ne $env:POWERSHELL_SHA256) { throw "PowerShell SHA-256 mismatch: $actual" }; \
+    $destination = 'C:/Program Files/PowerShell/7'; \
+    New-Item -ItemType Directory -Force $destination | Out-Null; \
+    Expand-Archive -LiteralPath $archive -DestinationPath $destination; \
+    Remove-Item -LiteralPath $archive; \
+    & "$destination/pwsh.exe" -NoLogo -NoProfile -Command 'if ($PSVersionTable.PSVersion.ToString() -ne $env:POWERSHELL_VERSION) { exit 1 }'; \
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 RUN New-Item -ItemType Directory -Force C:/godot/binaries, C:/godot/export_templates, C:/blender, C:/run/docker-godot | Out-Null; \
     $godotData = 'C:/Users/ContainerAdministrator/AppData/Roaming/Godot'; \
@@ -22,7 +40,7 @@ RUN New-Item -ItemType Directory -Force C:/godot/binaries, C:/godot/export_templ
     $ErrorActionPreference = 'Stop'; \
     if ($launcherExit -eq 0) { throw 'godot launcher unexpectedly succeeded without GODOT_VERSION' }
 
-ENV PATH="C:\godot;C:\Windows\system32;C:\Windows;C:\Windows\System32\WindowsPowerShell\v1.0"
+ENV PATH="C:\godot;C:\Program Files\PowerShell\7;C:\Windows\system32;C:\Windows;C:\Windows\System32\WindowsPowerShell\v1.0"
 
 VOLUME ["C:/godot/binaries", "C:/godot/export_templates", "C:/blender"]
 
