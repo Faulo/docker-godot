@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libgl1 \
         libice6 \
         libsm6 \
+        libvulkan1 \
         libx11-6 \
         libxext6 \
         libxfixes3 \

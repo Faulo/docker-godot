@@ -74,6 +74,7 @@ services:
     environment:
       GODOT_VERSION: "4.6"
       BLENDER_VERSION: "5"
+      NVIDIA_DRIVER_CAPABILITIES: all
     volumes:
       - godot-binaries:/godot/binaries
       - godot-templates:/godot/export_templates
@@ -101,7 +102,17 @@ Godot's standard export-template directory is linked to `/godot/export_templates
 
 Cleanup of unused versions is outside the scope of this image.
 
-The Compose examples also forward the host GPU. GPU passthrough is optional and depends on the Docker daemon, host drivers, container isolation, and Godot or Blender rendering configuration.
+The Compose examples also forward the host GPU. On Linux, the image includes the
+Vulkan loader and `NVIDIA_DRIVER_CAPABILITIES=all` exposes the graphics driver in
+addition to CUDA. On Windows containers, the forwarded device is available to
+DirectX workloads; Godot must use its D3D12 rendering driver to render with it.
+
+GPU passthrough does not by itself accelerate headless project import or export.
+Godot's `--headless` display driver disables rendering, and Godot invokes Blender
+in background mode to export `.blend` files to glTF. That Blender export path is
+CPU-bound. Blender rendering or other explicitly GPU-backed tasks can use the
+forwarded device when the host and container runtime support their graphics or
+compute API.
 
 ## Local Build and Test
 
