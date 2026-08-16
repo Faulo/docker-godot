@@ -1,3 +1,6 @@
+ARG OS_BASE=bookworm-slim
+ARG DEBIAN_FRONTEND=noninteractive
+
 FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim AS build
 
 WORKDIR /source
@@ -10,12 +13,14 @@ RUN dotnet publish Godot.csproj \
         --self-contained true \
         --output /out
 
-FROM debian:bookworm-slim
-
-ARG DEBIAN_FRONTEND=noninteractive
+FROM debian:${OS_BASE}
 
 USER root
 WORKDIR /godot
+
+COPY --from=build --chmod=755 /out/docker-godot /godot/docker-godot
+COPY --chmod=755 linux/godot.sh /godot/godot
+COPY --chmod=755 linux/blender.sh /godot/blender
 
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
@@ -42,10 +47,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         xz-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-COPY --from=build --chmod=755 /out/docker-godot /godot/docker-godot
-COPY --chmod=755 linux/godot.sh /godot/godot
-COPY --chmod=755 linux/blender.sh /godot/blender
 
 # Keep Godot's standard data path while placing the large templates on their
 # own volume.

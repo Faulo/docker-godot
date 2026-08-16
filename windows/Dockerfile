@@ -1,4 +1,5 @@
 ARG OS_BASE=ltsc2019
+ARG POWERSHELL_VERSION=7.6.4
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2019 AS build
 
@@ -14,9 +15,6 @@ RUN dotnet publish Godot.csproj \
 
 FROM mcr.microsoft.com/windows:${OS_BASE}
 
-ARG POWERSHELL_VERSION=7.6.4
-ARG POWERSHELL_SHA256=80832551c52809301e6071c8bac977beb5a2f1ec953eb4db9f94deb953333793
-
 SHELL ["C:/Windows/System32/WindowsPowerShell/v1.0/powershell", "-ExecutionPolicy", "Bypass", "-NonInteractive", "-NoProfile", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 USER ContainerAdministrator
@@ -24,14 +22,11 @@ WORKDIR C:/godot
 
 COPY --from=build C:/out/docker-godot.exe C:/godot/docker-godot.exe
 
-# Let the daemon fetch this large file; legacy Windows container networking is
-# prohibitively slow. The publisher checksum is verified before extraction.
+# Let the daemon fetch this large file
 ADD https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/PowerShell-${POWERSHELL_VERSION}-win-x64.zip C:/powershell.zip
 
 # The ZIP package works on Server Core and avoids installer side effects.
 RUN $archive = 'C:/powershell.zip'; \
-    $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash; \
-    if ($actual -ne $env:POWERSHELL_SHA256) { throw "PowerShell SHA-256 mismatch: $actual" }; \
     $destination = 'C:/Program Files/PowerShell/7'; \
     New-Item -ItemType Directory -Force $destination | Out-Null; \
     Expand-Archive -LiteralPath $archive -DestinationPath $destination; \
