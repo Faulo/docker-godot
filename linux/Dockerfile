@@ -1,10 +1,14 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim AS build
 
 WORKDIR /source
 
-COPY common/DockerGodot.csproj common/Program.cs ./
+COPY common/Godot/ .
 
-RUN dotnet publish DockerGodot.csproj --configuration Release --output /out
+RUN dotnet publish Godot.csproj \
+        --configuration Release \
+        --runtime linux-x64 \
+        --self-contained true \
+        --output /out
 
 FROM debian:bookworm-slim
 

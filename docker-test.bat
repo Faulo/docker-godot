@@ -23,12 +23,16 @@ set "DOCKER_TEST_ARGS=%DOCKER_TEST_ARGS:\"="%"
 set "DOCKER_TEST_CMD=%DOCKER_TEST_CMD:~1,-1%"
 set "DOCKER_TEST_CMD=%DOCKER_TEST_CMD:\"="%"
 
-if not defined DOCKER_OS (
-    echo Usage: docker-test.bat ^<linux^|windows^>
-    goto test_done
+if defined DOCKER_OS (
+    set "DOCKER_CONTEXT_ARGS=--context %DOCKER_OS%"
+) else (
+    for /f %%i in ('docker info --format "{{.OSType}}"') do set "DOCKER_OS=%%i"
 )
 
-set "DOCKER_CONTEXT_ARGS=--context %DOCKER_OS%"
+if not defined DOCKER_OS (
+    echo Failed to determine the Docker OS
+    goto test_done
+)
 
 call set "DOCKER_TEST_OS_ARGS=%%DOCKER_TEST_ARGS_%DOCKER_OS%%%"
 
