@@ -1,0 +1,40 @@
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using Xunit;
+
+public sealed class ChecksumVerifierTests {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AcceptsMatchingChecksum(bool binaryMarker) {
+        using var directory = new TemporaryDirectory();
+        string archive = directory.Write("archive.zip", "verified contents");
+        string checksum = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(archive))).ToLowerInvariant();
+        string sums = directory.Write("sums.txt", checksum + (binaryMarker ? " *" : "  ") + "archive.zip\n");
+
+        ChecksumVerifier.VerifySha256(archive, sums);
+    }
+
+    [Fact]
+    public void RejectsMismatchedChecksum() {
+        using var directory = new TemporaryDirectory();
+        string archive = directory.Write("archive.zip", "contents");
+        string sums = directory.Write("sums.txt", new string('0', 64) + "  archive.zip\n");
+
+        var exception = Assert.Throws<InvalidDataException>(() => ChecksumVerifier.VerifySha256(archive, sums));
+
+        Assert.Contains("mismatch", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RejectsMissingChecksumEntry() {
+        using var directory = new TemporaryDirectory();
+        string archive = directory.Write("archive.zip", "contents");
+        string sums = directory.Write("sums.txt", new string('0', 64) + "  another.zip\n");
+
+        var exception = Assert.Throws<InvalidDataException>(() => ChecksumVerifier.VerifySha256(archive, sums));
+
+        Assert.Contains("missing", exception.Message, StringComparison.Ordinal);
+    }
+}

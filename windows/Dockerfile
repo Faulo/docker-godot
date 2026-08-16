@@ -11,6 +11,7 @@ RUN dotnet publish Godot.csproj \
         --configuration Release \
         --runtime win-x64 \
         --self-contained true \
+        --property:PublishSingleFile=true \
         --output C:/out
 
 FROM mcr.microsoft.com/windows:${OS_BASE}
