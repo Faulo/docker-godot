@@ -119,6 +119,16 @@ compute API.
 
 ## Local Build and Test
 
+The launcher unit tests run directly on .NET and do not require Docker:
+
+```text
+dotnet test DockerGodot.sln --configuration Release
+```
+
+The tests cover version selection, release-list parsing, checksum verification,
+Godot editor-settings updates, process argument forwarding, platform artifact
+names, and launcher health state.
+
 The local setup expects explicitly named `linux` and `windows` Docker contexts. Both builds use the repository root as their build context:
 
 ```text

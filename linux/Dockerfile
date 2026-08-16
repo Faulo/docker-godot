@@ -11,6 +11,7 @@ RUN dotnet publish Godot.csproj \
         --configuration Release \
         --runtime linux-x64 \
         --self-contained true \
+        --property:PublishSingleFile=true \
         --output /out
 
 FROM debian:${OS_BASE}
