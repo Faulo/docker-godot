@@ -32,10 +32,11 @@ RUN $archive = 'C:/powershell.zip'; \
     New-Item -ItemType Directory -Force $destination | Out-Null; \
     Expand-Archive -LiteralPath $archive -DestinationPath $destination; \
     Remove-Item -LiteralPath $archive; \
-    & "$destination/pwsh.exe" -NoLogo -NoProfile -Command 'if ($PSVersionTable.PSVersion.ToString() -ne $env:POWERSHELL_VERSION) { exit 1 }'; \
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; \
     $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine'); \
     [Environment]::SetEnvironmentVariable('Path', ('C:\godot;' + $destination + ';' + $machinePath), 'Machine')
+RUN pwsh.exe -NoLogo -NoProfile -Command \
+        'if ($PSVersionTable.PSVersion.ToString() -ne $env:POWERSHELL_VERSION) { exit 1 }'; \
+    if ($LASTEXITCODE -ne 0) { throw 'PowerShell smoke check failed' }
 
 VOLUME ["C:/godot/binaries", "C:/godot/export_templates", "C:/blender"]
 

@@ -61,6 +61,7 @@ jobs:
             windows_context: .
             windows_variants: >-
                 [
+                  {"tag":"windows-ltsc2022","build_args":{"OS_BASE":"ltsc2022"}},
                   {"tag":"windows-ltsc2019","build_args":{"OS_BASE":"ltsc2019"}}
                 ]
         secrets:
