@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
+using DockerGodot;
 using NUnit.Framework;
+
+namespace Godot.Tests;
 
 public sealed class ProcessRunnerTests {
     [Test]

@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 
+namespace DockerGodot;
+
 interface IDownloadClient {
     string ReadText(string uri, bool github);
 
@@ -14,7 +16,7 @@ interface IDownloadClient {
 sealed class DownloadClient : IDownloadClient {
     const int MAX_ATTEMPTS = 5;
 
-    static readonly HttpClient httpClient = CreateHttpClient();
+    static readonly HttpClient HttpClient = CreateHttpClient();
 
     public static readonly DownloadClient shared = new();
 
@@ -24,7 +26,7 @@ sealed class DownloadClient : IDownloadClient {
     public string ReadText(string uri, bool github) {
         return Retry(uri, "request", () => {
             using var request = CreateRequest(uri, github);
-            using var response = httpClient.Send(request, HttpCompletionOption.ResponseHeadersRead);
+            using var response = HttpClient.Send(request, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
             return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         });
@@ -38,7 +40,7 @@ sealed class DownloadClient : IDownloadClient {
                 request.Headers.Range = new RangeHeaderValue(offset, null);
             }
 
-            using var response = httpClient.Send(request, HttpCompletionOption.ResponseHeadersRead);
+            using var response = HttpClient.Send(request, HttpCompletionOption.ResponseHeadersRead);
             if (response.StatusCode == HttpStatusCode.RequestedRangeNotSatisfiable && offset > 0) {
                 File.Delete(destination);
                 throw new IOException("server rejected download resume offset: " + uri);

@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+namespace DockerGodot;
+
 sealed class PlatformInfo {
     public static readonly PlatformInfo current = CreateCurrent();
 

@@ -1,7 +1,10 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using DockerGodot;
 using NUnit.Framework;
+
+namespace Godot.Tests;
 
 public sealed class ChecksumVerifierTests {
     [TestCase(false)]

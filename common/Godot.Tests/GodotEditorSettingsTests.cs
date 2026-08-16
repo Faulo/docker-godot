@@ -1,5 +1,8 @@
 using System;
+using DockerGodot;
 using NUnit.Framework;
+
+namespace Godot.Tests;
 
 public sealed class GodotEditorSettingsTests {
     const string SETTING = "filesystem/import/blender/blender_path = \"/blender/blender\"";

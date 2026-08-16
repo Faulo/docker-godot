@@ -1,5 +1,8 @@
 using System;
+using DockerGodot;
 using NUnit.Framework;
+
+namespace Godot.Tests;
 
 public sealed class VersionSelectorTests {
     [TestCase("4", "4.6.2", true)]

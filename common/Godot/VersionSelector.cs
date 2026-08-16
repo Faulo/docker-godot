@@ -1,11 +1,13 @@
 using System;
 using System.Globalization;
 
+namespace DockerGodot;
+
 sealed class VersionSelector {
-    readonly int[] components;
+    readonly int[] _components;
 
     VersionSelector(int[] components) {
-        this.components = components;
+        _components = components;
     }
 
     public static VersionSelector Parse(string name, string value) {
@@ -29,21 +31,21 @@ sealed class VersionSelector {
     }
 
     public bool Matches(Version version) {
-        return components[0] == version.Major
-            && (components.Length < 2 || components[1] == version.Minor)
-            && (components.Length < 3 || components[2] == version.Build);
+        return _components[0] == version.Major
+            && (_components.Length < 2 || _components[1] == version.Minor)
+            && (_components.Length < 3 || _components[2] == version.Build);
     }
 
     public int Component(int index) {
-        return components[index];
+        return _components[index];
     }
 
     public int ComponentCount() {
-        return components.Length;
+        return _components.Length;
     }
 
     public override string ToString() {
-        return string.Join('.', components);
+        return string.Join('.', _components);
     }
 
     static InvalidOperationException Invalid(string name, string value) {

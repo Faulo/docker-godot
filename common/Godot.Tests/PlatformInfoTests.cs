@@ -1,4 +1,7 @@
+using DockerGodot;
 using NUnit.Framework;
+
+namespace Godot.Tests;
 
 public sealed class PlatformInfoTests {
     [Test]

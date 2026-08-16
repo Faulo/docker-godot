@@ -6,22 +6,24 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 
-sealed class RuntimeSetup {
-    static readonly TimeSpan lockTimeout = TimeSpan.FromHours(2);
+namespace DockerGodot;
 
-    readonly PlatformInfo platform;
-    readonly IReleaseResolver releaseResolver;
-    readonly IDownloadClient downloadClient;
+sealed class RuntimeSetup {
+    static readonly TimeSpan LockTimeout = TimeSpan.FromHours(2);
+
+    readonly PlatformInfo _platform;
+    readonly IReleaseResolver _releaseResolver;
+    readonly IDownloadClient _downloadClient;
 
     public RuntimeSetup(PlatformInfo platform, IReleaseResolver releaseResolver, IDownloadClient downloadClient) {
-        this.platform = platform;
-        this.releaseResolver = releaseResolver;
-        this.downloadClient = downloadClient;
+        _platform = platform;
+        _releaseResolver = releaseResolver;
+        _downloadClient = downloadClient;
     }
 
     public string PrepareGodot() {
         var godotSelector = RequireSelector(EnvironmentVariableNames.GODOT_VERSION);
-        platform.EnsureTemplateLink();
+        _platform.EnsureTemplateLink();
         ClearReady();
 
         var readyPaths = new List<string>();
@@ -33,20 +35,20 @@ sealed class RuntimeSetup {
             readyPaths.Add(blender);
         }
 
-        string[] cached = ReadLinesIfPresent(Path.Combine(platform.stateRoot, "godot"));
+        string[] cached = ReadLinesIfPresent(Path.Combine(_platform.stateRoot, "godot"));
         string godot;
         if (CanUseCache(godotSelector, cached, 2)) {
             godot = cached[1];
         } else {
-            using (AcquireLock(platform.godotRoot))
-            using (AcquireLock(platform.templateRoot)) {
+            using (AcquireLock(_platform.godotRoot))
+            using (AcquireLock(_platform.templateRoot)) {
                 godot = InstallGodot(godotSelector);
             }
             WriteGodotCache(godotSelector, godot);
         }
 
         if (blender != null) {
-            GodotEditorSettings.Configure(platform, godot, blender);
+            GodotEditorSettings.Configure(_platform, godot, blender);
         }
 
         readyPaths.Add(godot);
@@ -55,18 +57,18 @@ sealed class RuntimeSetup {
     }
 
     public bool IsHealthy() {
-        string ready = Path.Combine(platform.stateRoot, "ready");
+        string ready = Path.Combine(_platform.stateRoot, "ready");
         string[] paths = ReadLinesIfPresent(ready);
         return paths.Length > 0 && paths.All(File.Exists);
     }
 
     string GetOrInstallBlender(VersionSelector selector) {
-        string[] cached = ReadLinesIfPresent(Path.Combine(platform.stateRoot, "blender"));
+        string[] cached = ReadLinesIfPresent(Path.Combine(_platform.stateRoot, "blender"));
         string blender;
         if (CanUseCache(selector, cached, 1)) {
             blender = cached[1];
         } else {
-            using (AcquireLock(platform.blenderRoot)) {
+            using (AcquireLock(_platform.blenderRoot)) {
                 blender = InstallBlender(selector);
             }
             WriteBlenderCache(selector, blender);
@@ -76,20 +78,20 @@ sealed class RuntimeSetup {
     }
 
     string InstallGodot(VersionSelector selector) {
-        var release = releaseResolver.ResolveGodot(selector);
+        var release = _releaseResolver.ResolveGodot(selector);
         string installId = release.tag.Replace('-', '.');
-        string installDirectory = Path.Combine(platform.godotRoot, installId);
-        string templateDirectory = Path.Combine(platform.templateRoot, installId);
-        string executable = Path.Combine(installDirectory, platform.GodotExecutable(release.tag));
+        string installDirectory = Path.Combine(_platform.godotRoot, installId);
+        string templateDirectory = Path.Combine(_platform.templateRoot, installId);
+        string executable = Path.Combine(installDirectory, _platform.GodotExecutable(release.tag));
 
         if (!File.Exists(executable)) {
-            DeleteIncompleteInstallation(installDirectory, platform.godotRoot);
+            DeleteIncompleteInstallation(installDirectory, _platform.godotRoot);
             InstallGodotEditor(release, installId, installDirectory);
         }
 
         string templateMarker = Path.Combine(templateDirectory, "version.txt");
         if (!File.Exists(templateMarker)) {
-            DeleteIncompleteInstallation(templateDirectory, platform.templateRoot);
+            DeleteIncompleteInstallation(templateDirectory, _platform.templateRoot);
             InstallGodotTemplates(release, installId, templateDirectory);
         }
 
@@ -98,23 +100,23 @@ sealed class RuntimeSetup {
 
     void InstallGodotEditor(GodotRelease release, string installId, string installDirectory) {
         Log("installing Godot " + release.version + " (" + installId + ")");
-        CleanupTemporaryDirectories(platform.godotRoot, installId);
-        string temporary = CreateTemporaryDirectory(platform.godotRoot, installId);
+        CleanupTemporaryDirectories(_platform.godotRoot, installId);
+        string temporary = CreateTemporaryDirectory(_platform.godotRoot, installId);
         try {
-            string filename = platform.GodotArchive(release.tag);
+            string filename = _platform.GodotArchive(release.tag);
             string archive = Path.Combine(temporary, filename);
             string sums = Path.Combine(temporary, "SHA512-SUMS.txt");
             string baseUrl = "https://github.com/godotengine/godot-builds/releases/download/" + release.tag;
-            downloadClient.Save(baseUrl + "/" + filename, archive);
-            downloadClient.Save(baseUrl + "/SHA512-SUMS.txt", sums);
+            _downloadClient.Save(baseUrl + "/" + filename, archive);
+            _downloadClient.Save(baseUrl + "/SHA512-SUMS.txt", sums);
             ChecksumVerifier.VerifySha512(archive, sums);
             string unpacked = Path.Combine(temporary, "unpacked");
             ZipFile.ExtractToDirectory(archive, unpacked);
-            string unpackedExecutable = Path.Combine(unpacked, platform.GodotExecutable(release.tag));
+            string unpackedExecutable = Path.Combine(unpacked, _platform.GodotExecutable(release.tag));
             if (!File.Exists(unpackedExecutable)) {
                 throw new InvalidDataException("Godot archive has an unexpected layout");
             }
-            if (!platform.isWindows) {
+            if (!_platform.isWindows) {
                 ProcessRunner.Run("chmod", new[] { "+x", unpackedExecutable }, true);
             }
             Directory.Move(unpacked, installDirectory);
@@ -125,15 +127,15 @@ sealed class RuntimeSetup {
 
     void InstallGodotTemplates(GodotRelease release, string installId, string templateDirectory) {
         Log("installing Godot export templates " + installId);
-        CleanupTemporaryDirectories(platform.templateRoot, installId);
-        string temporary = CreateTemporaryDirectory(platform.templateRoot, installId);
+        CleanupTemporaryDirectories(_platform.templateRoot, installId);
+        string temporary = CreateTemporaryDirectory(_platform.templateRoot, installId);
         try {
             string filename = "Godot_v" + release.tag + "_export_templates.tpz";
             string archive = Path.Combine(temporary, filename);
             string sums = Path.Combine(temporary, "SHA512-SUMS.txt");
             string baseUrl = "https://github.com/godotengine/godot-builds/releases/download/" + release.tag;
-            downloadClient.Save(baseUrl + "/" + filename, archive);
-            downloadClient.Save(baseUrl + "/SHA512-SUMS.txt", sums);
+            _downloadClient.Save(baseUrl + "/" + filename, archive);
+            _downloadClient.Save(baseUrl + "/SHA512-SUMS.txt", sums);
             ChecksumVerifier.VerifySha512(archive, sums);
             string unpacked = Path.Combine(temporary, "unpacked");
             ZipFile.ExtractToDirectory(archive, unpacked);
@@ -148,38 +150,38 @@ sealed class RuntimeSetup {
     }
 
     string InstallBlender(VersionSelector selector) {
-        var release = releaseResolver.ResolveBlender(selector, platform);
+        var release = _releaseResolver.ResolveBlender(selector, _platform);
         string version = release.version.ToString(3);
-        string installDirectory = Path.Combine(platform.blenderRoot, version);
-        string executable = Path.Combine(installDirectory, platform.blenderExecutable);
+        string installDirectory = Path.Combine(_platform.blenderRoot, version);
+        string executable = Path.Combine(installDirectory, _platform.blenderExecutable);
         if (File.Exists(executable)) {
             return executable;
         }
 
-        DeleteIncompleteInstallation(installDirectory, platform.blenderRoot);
+        DeleteIncompleteInstallation(installDirectory, _platform.blenderRoot);
         Log("installing Blender " + version);
-        CleanupTemporaryDirectories(platform.blenderRoot, version);
-        string temporary = CreateTemporaryDirectory(platform.blenderRoot, version);
+        CleanupTemporaryDirectories(_platform.blenderRoot, version);
+        string temporary = CreateTemporaryDirectory(_platform.blenderRoot, version);
         try {
-            string filename = platform.BlenderArchive(version);
+            string filename = _platform.BlenderArchive(version);
             string archive = Path.Combine(temporary, filename);
             string sums = Path.Combine(temporary, "blender-" + version + ".sha256");
             string baseUrl = "https://download.blender.org/release/" + release.series;
-            downloadClient.Save(baseUrl + "/" + filename, archive);
-            downloadClient.Save(baseUrl + "/blender-" + version + ".sha256", sums);
+            _downloadClient.Save(baseUrl + "/" + filename, archive);
+            _downloadClient.Save(baseUrl + "/blender-" + version + ".sha256", sums);
             ChecksumVerifier.VerifySha256(archive, sums);
             string unpacked = Path.Combine(temporary, "unpacked");
             Directory.CreateDirectory(unpacked);
-            if (platform.isWindows) {
+            if (_platform.isWindows) {
                 ZipFile.ExtractToDirectory(archive, unpacked);
                 string? source = Directory.GetDirectories(unpacked).FirstOrDefault();
-                if (source == null || !File.Exists(Path.Combine(source, platform.blenderExecutable))) {
+                if (source == null || !File.Exists(Path.Combine(source, _platform.blenderExecutable))) {
                     throw new InvalidDataException("Blender archive has an unexpected layout");
                 }
                 Directory.Move(source, installDirectory);
             } else {
                 ProcessRunner.Run("tar", new[] { "-xJf", archive, "-C", unpacked, "--strip-components=1" }, true);
-                if (!File.Exists(Path.Combine(unpacked, platform.blenderExecutable))) {
+                if (!File.Exists(Path.Combine(unpacked, _platform.blenderExecutable))) {
                     throw new InvalidDataException("Blender archive has an unexpected layout");
                 }
                 Directory.Move(unpacked, installDirectory);
@@ -206,7 +208,7 @@ sealed class RuntimeSetup {
         Directory.CreateDirectory(root);
         string path = Path.Combine(root, ".docker-godot.lock");
         var elapsed = Stopwatch.StartNew();
-        while (elapsed.Elapsed < lockTimeout) {
+        while (elapsed.Elapsed < LockTimeout) {
             try {
                 return new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
             } catch (IOException) {
@@ -251,27 +253,27 @@ sealed class RuntimeSetup {
     }
 
     void WriteBlenderCache(VersionSelector selector, string executable) {
-        Directory.CreateDirectory(platform.stateRoot);
-        File.WriteAllLines(Path.Combine(platform.stateRoot, "blender"), new[] { selector.ToString(), executable });
+        Directory.CreateDirectory(_platform.stateRoot);
+        File.WriteAllLines(Path.Combine(_platform.stateRoot, "blender"), new[] { selector.ToString(), executable });
     }
 
     void WriteGodotCache(VersionSelector selector, string executable) {
-        string installId = Path.GetFileName(Path.GetDirectoryName(executable)!)!;
-        string templateMarker = Path.Combine(platform.templateRoot, installId, "version.txt");
-        Directory.CreateDirectory(platform.stateRoot);
-        File.WriteAllLines(Path.Combine(platform.stateRoot, "godot"), new[] { selector.ToString(), executable, templateMarker });
+        string installId = Path.GetFileName(Path.GetDirectoryName(executable)!);
+        string templateMarker = Path.Combine(_platform.templateRoot, installId, "version.txt");
+        Directory.CreateDirectory(_platform.stateRoot);
+        File.WriteAllLines(Path.Combine(_platform.stateRoot, "godot"), new[] { selector.ToString(), executable, templateMarker });
     }
 
     void ClearReady() {
-        string ready = Path.Combine(platform.stateRoot, "ready");
+        string ready = Path.Combine(_platform.stateRoot, "ready");
         if (File.Exists(ready)) {
             File.Delete(ready);
         }
     }
 
     void WriteReady(IEnumerable<string> paths) {
-        Directory.CreateDirectory(platform.stateRoot);
-        string ready = Path.Combine(platform.stateRoot, "ready");
+        Directory.CreateDirectory(_platform.stateRoot);
+        string ready = Path.Combine(_platform.stateRoot, "ready");
         string temporary = ready + "." + Guid.NewGuid().ToString("N");
         File.WriteAllLines(temporary, paths);
         File.Move(temporary, ready, true);

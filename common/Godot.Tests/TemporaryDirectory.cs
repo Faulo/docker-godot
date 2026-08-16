@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 
+namespace Godot.Tests;
+
 sealed class TemporaryDirectory : IDisposable {
     public TemporaryDirectory() {
         path = Path.Combine(Path.GetTempPath(), "docker-godot-tests", Guid.NewGuid().ToString("N"));

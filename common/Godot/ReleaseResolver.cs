@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
+namespace DockerGodot;
+
 interface IReleaseResolver {
     GodotRelease ResolveGodot(VersionSelector selector);
 
@@ -15,20 +17,20 @@ sealed class ReleaseResolver : IReleaseResolver {
     const int MAX_GITHUB_PAGES = 10;
     const int GITHUB_PAGE_SIZE = 100;
 
-    static readonly Regex godotStableTag = new("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?-stable$");
-    static readonly Regex blenderSeries = new("Blender(\\d+)\\.(\\d+)/");
+    static readonly Regex GodotStableTag = new("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?-stable$");
+    static readonly Regex BlenderSeries = new("Blender(\\d+)\\.(\\d+)/");
 
-    readonly IDownloadClient downloadClient;
+    readonly IDownloadClient _downloadClient;
 
     public ReleaseResolver(IDownloadClient downloadClient) {
-        this.downloadClient = downloadClient;
+        _downloadClient = downloadClient;
     }
 
     public GodotRelease ResolveGodot(VersionSelector selector) {
         var candidates = new List<GodotRelease>();
         for (int page = 1; page <= MAX_GITHUB_PAGES; page++) {
             string uri = "https://api.github.com/repos/godotengine/godot-builds/releases?per_page=" + GITHUB_PAGE_SIZE + "&page=" + page;
-            string response = downloadClient.ReadText(uri, true);
+            string response = _downloadClient.ReadText(uri, true);
             var tags = ParseGodotTags(response);
             candidates.AddRange(ParseGodotReleases(tags, selector));
             if (candidates.Count > 0 || tags.Count < GITHUB_PAGE_SIZE) {
@@ -44,10 +46,10 @@ sealed class ReleaseResolver : IReleaseResolver {
     }
 
     public BlenderRelease ResolveBlender(VersionSelector selector, PlatformInfo platform) {
-        string root = downloadClient.ReadText("https://download.blender.org/release/", false);
+        string root = _downloadClient.ReadText("https://download.blender.org/release/", false);
         var candidates = new List<BlenderRelease>();
         foreach (string series in ParseBlenderSeries(root, selector)) {
-            string listing = downloadClient.ReadText("https://download.blender.org/release/" + series, false);
+            string listing = _downloadClient.ReadText("https://download.blender.org/release/" + series, false);
             candidates.AddRange(ParseBlenderReleases(listing, series, selector, platform));
         }
 
@@ -77,7 +79,7 @@ sealed class ReleaseResolver : IReleaseResolver {
     internal static IReadOnlyList<GodotRelease> ParseGodotReleases(IEnumerable<string> tags, VersionSelector selector) {
         var releases = new List<GodotRelease>();
         foreach (string tag in tags) {
-            var match = godotStableTag.Match(tag);
+            var match = GodotStableTag.Match(tag);
             if (!match.Success) {
                 continue;
             }
@@ -96,7 +98,7 @@ sealed class ReleaseResolver : IReleaseResolver {
     }
 
     internal static IReadOnlyList<string> ParseBlenderSeries(string response, VersionSelector selector) {
-        return blenderSeries.Matches(response)
+        return BlenderSeries.Matches(response)
             .Cast<Match>()
             .Where(match => int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) == selector.Component(0))
             .Where(match => selector.ComponentCount() < 2 || int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) == selector.Component(1))
@@ -118,7 +120,7 @@ sealed class ReleaseResolver : IReleaseResolver {
     }
 
     static string SeriesMinor(string series) {
-        var match = blenderSeries.Match(series);
+        var match = BlenderSeries.Match(series);
         if (!match.Success) {
             throw new InvalidOperationException("invalid Blender release series: " + series);
         }

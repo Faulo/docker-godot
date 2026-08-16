@@ -4,8 +4,10 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
+namespace DockerGodot;
+
 static class GodotEditorSettings {
-    static readonly Regex blenderSetting = new("^filesystem/import/blender/blender_path = [^\\r\\n]*", RegexOptions.Multiline);
+    static readonly Regex BlenderSetting = new("^filesystem/import/blender/blender_path = [^\\r\\n]*", RegexOptions.Multiline);
 
     public static void Configure(PlatformInfo platform, string godotExecutable, string blenderExecutable) {
         string installId = new DirectoryInfo(Path.GetDirectoryName(godotExecutable)!).Name;
@@ -27,8 +29,8 @@ static class GodotEditorSettings {
                 + "[resource]" + Environment.NewLine + setting + Environment.NewLine;
         }
 
-        return blenderSetting.IsMatch(contents)
-            ? blenderSetting.Replace(contents, setting)
+        return BlenderSetting.IsMatch(contents)
+            ? BlenderSetting.Replace(contents, setting)
             : contents.TrimEnd() + Environment.NewLine + setting + Environment.NewLine;
     }
 

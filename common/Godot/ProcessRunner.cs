@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
+namespace DockerGodot;
+
 static class ProcessRunner {
     public static int Run(string executable, IEnumerable<string> arguments, bool requireSuccess) {
         using var process = Process.Start(CreateStartInfo(executable, arguments)) ?? throw new InvalidOperationException("failed to start " + executable);

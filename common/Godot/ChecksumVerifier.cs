@@ -3,6 +3,8 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
+namespace DockerGodot;
+
 static class ChecksumVerifier {
     public static void VerifySha512(string archive, string sums) {
         Verify(archive, sums, "SHA512", SHA512.Create);

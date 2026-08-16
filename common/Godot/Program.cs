@@ -1,5 +1,7 @@
 using System;
 
+namespace DockerGodot;
+
 static class Program {
     static int Main(string[] arguments) {
         try {
