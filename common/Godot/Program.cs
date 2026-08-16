@@ -19,45 +19,14 @@ internal static class Program
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-            string invokedAs = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]).ToLowerInvariant();
-            string operation;
-            string[] processArguments;
-            if (invokedAs == "godot" || invokedAs == "blender")
-            {
-                operation = invokedAs;
-                processArguments = arguments;
-            }
-            else
-            {
-                if (arguments.Length == 0)
-                {
-                    throw new InvalidOperationException("usage: docker-godot godot|blender|health");
-                }
-                operation = arguments[0].ToLowerInvariant();
-                processArguments = arguments.Skip(1).ToArray();
-            }
-
             RuntimeSetup setup = new RuntimeSetup(PlatformInfo.Current);
-            if (operation == "health")
+            if (arguments.Length == 1 && string.Equals(arguments[0], "health", StringComparison.OrdinalIgnoreCase))
             {
                 return setup.IsHealthy() ? 0 : 1;
             }
 
-            string executable;
-            if (operation == "godot")
-            {
-                executable = setup.PrepareGodot();
-            }
-            else if (operation == "blender")
-            {
-                executable = setup.PrepareBlender();
-            }
-            else
-            {
-                throw new InvalidOperationException("usage: docker-godot godot|blender|health");
-            }
-
-            return ProcessRunner.Run(executable, processArguments, false);
+            string executable = setup.PrepareGodot();
+            return ProcessRunner.Run(executable, arguments, false);
         }
         catch (Exception exception)
         {
@@ -65,6 +34,12 @@ internal static class Program
             return 1;
         }
     }
+}
+
+internal static class EnvironmentVariableNames
+{
+    public const string GodotVersion = "GODOT_VERSION";
+    public const string BlenderVersion = "BLENDER_VERSION";
 }
 
 internal sealed class RuntimeSetup
@@ -78,11 +53,11 @@ internal sealed class RuntimeSetup
 
     public string PrepareGodot()
     {
-        string godotSelector = RequireSelector("GODOT_VERSION");
+        string godotSelector = RequireSelector(EnvironmentVariableNames.GodotVersion);
         platform.EnsureTemplateLink();
         List<string> readyPaths = new List<string>();
         string blender = null;
-        string blenderSelector = Environment.GetEnvironmentVariable("BLENDER_VERSION");
+        string blenderSelector = Environment.GetEnvironmentVariable(EnvironmentVariableNames.BlenderVersion);
         if (!string.IsNullOrWhiteSpace(blenderSelector))
         {
             blender = GetOrInstallBlender(blenderSelector);
@@ -105,21 +80,13 @@ internal sealed class RuntimeSetup
             WriteGodotCache(godotSelector, godot);
         }
 
-        if (readyPaths.Count > 0)
+        if (blender != null)
         {
             ConfigureBlenderForGodot(godot, blender);
         }
         readyPaths.Add(godot);
         WriteReady(readyPaths);
         return godot;
-    }
-
-    public string PrepareBlender()
-    {
-        string selector = RequireSelector("BLENDER_VERSION");
-        string blender = GetOrInstallBlender(selector);
-        WriteReady(new[] { blender });
-        return blender;
     }
 
     private string GetOrInstallBlender(string selector)
@@ -143,7 +110,7 @@ internal sealed class RuntimeSetup
 
     private string FindInstalledGodot(string selector)
     {
-        ValidateSelector("GODOT_VERSION", selector);
+        ValidateSelector(EnvironmentVariableNames.GodotVersion, selector);
         if (!Directory.Exists(platform.GodotRoot))
         {
             return null;
@@ -177,7 +144,7 @@ internal sealed class RuntimeSetup
 
     private string FindInstalledBlender(string selector)
     {
-        ValidateSelector("BLENDER_VERSION", selector);
+        ValidateSelector(EnvironmentVariableNames.BlenderVersion, selector);
         if (!Directory.Exists(platform.BlenderRoot))
         {
             return null;
@@ -237,11 +204,7 @@ internal sealed class RuntimeSetup
 
     private string InstallGodot(string selector)
     {
-        ValidateSelector("GODOT_VERSION", selector);
-        if (selector.Split('.')[0] != "4")
-        {
-            throw new InvalidOperationException("only standard Godot 4 releases are currently supported");
-        }
+        ValidateSelector(EnvironmentVariableNames.GodotVersion, selector);
 
         GodotRelease release = ReleaseResolver.ResolveGodot(selector);
         string installId = release.Tag.Replace('-', '.');
@@ -312,7 +275,7 @@ internal sealed class RuntimeSetup
 
     private string InstallBlender(string selector)
     {
-        ValidateSelector("BLENDER_VERSION", selector);
+        ValidateSelector(EnvironmentVariableNames.BlenderVersion, selector);
         BlenderRelease release = ReleaseResolver.ResolveBlender(selector, platform);
         string version = release.Version.ToString(3);
         string installDirectory = Path.Combine(platform.BlenderRoot, version);
@@ -550,7 +513,7 @@ internal static class ReleaseResolver
         }
         if (candidates.Count == 0)
         {
-            throw new InvalidOperationException("no stable Godot release matches GODOT_VERSION=" + selector);
+            throw new InvalidOperationException("no stable Godot release matches " + EnvironmentVariableNames.GodotVersion + "=" + selector);
         }
         return candidates.OrderBy(candidate => candidate.Version).Last();
     }
@@ -581,7 +544,7 @@ internal static class ReleaseResolver
         }
         if (candidates.Count == 0)
         {
-            throw new InvalidOperationException("no stable Blender release matches BLENDER_VERSION=" + selector);
+            throw new InvalidOperationException("no stable Blender release matches " + EnvironmentVariableNames.BlenderVersion + "=" + selector);
         }
         return candidates.OrderBy(candidate => candidate.Version).Last();
     }
@@ -783,6 +746,12 @@ internal sealed class PlatformInfo
         {
             config = isWindows ? Path.Combine(home, "AppData", "Roaming") : Path.Combine(home, ".config");
         }
+        string data = Environment.GetEnvironmentVariable(isWindows ? "APPDATA" : "XDG_DATA_HOME");
+        if (string.IsNullOrWhiteSpace(data))
+        {
+            data = isWindows ? Path.Combine(home, "AppData", "Roaming") : Path.Combine(home, ".local", "share");
+        }
+        GodotDataRoot = Path.Combine(data, isWindows ? "Godot" : "godot");
         GodotSettingsRoot = Path.Combine(config, isWindows ? "Godot" : "godot");
     }
 
@@ -792,6 +761,7 @@ internal sealed class PlatformInfo
     public string BlenderRoot { get; private set; }
     public string StateRoot { get; private set; }
     public string BlenderExecutable { get; private set; }
+    public string GodotDataRoot { get; private set; }
     public string GodotSettingsRoot { get; private set; }
 
     public string GodotArchive(string tag)
@@ -817,23 +787,25 @@ internal sealed class PlatformInfo
 
     public void EnsureTemplateLink()
     {
-        if (!IsWindows)
-        {
-            return;
-        }
-
-        string link = Path.Combine(GodotSettingsRoot, "export_templates");
+        string link = Path.Combine(GodotDataRoot, "export_templates");
         Directory.CreateDirectory(Path.GetDirectoryName(link));
         if (Directory.Exists(link))
         {
             FileAttributes attributes = File.GetAttributes(link);
             if ((attributes & FileAttributes.ReparsePoint) == 0 && Directory.EnumerateFileSystemEntries(link).Any())
             {
-                throw new IOException("Godot export template path exists and is not an image-managed junction: " + link);
+                throw new IOException("Godot export template path exists and is not an image-managed link: " + link);
             }
             Directory.Delete(link, false);
         }
-        ProcessRunner.Run("cmd.exe", new[] { "/d", "/c", "mklink", "/J", link, TemplateRoot }, true);
+        if (IsWindows)
+        {
+            ProcessRunner.Run("cmd.exe", new[] { "/d", "/c", "mklink", "/J", link, TemplateRoot }, true);
+        }
+        else
+        {
+            Directory.CreateSymbolicLink(link, TemplateRoot);
+        }
     }
 }
 
