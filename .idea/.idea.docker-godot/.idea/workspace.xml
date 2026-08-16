@@ -13,7 +13,9 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="907f10b6-7f34-45ca-81e0-eb717a20b7dc" name="Changes" comment="" />
+    <list default="true" id="907f10b6-7f34-45ca-81e0-eb717a20b7dc" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/docker.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/docker.yml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,23 +46,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.000186416203878" />
-      <entry key="MS500" value="1.4243099447434242" />
-      <entry key="S2" value="4.184337234483614" />
-      <entry key="S5" value="6.725128364220533" />
-      <entry key="S10" value="8.676503325000688" />
-      <entry key="S30" value="11.148616766265304" />
-      <entry key="S60" value="14.07437840733017" />
-      <entry key="M2" value="27.281522748942912" />
-      <entry key="M5" value="88.18423216037772" />
-      <entry key="M10" value="196.60549106451694" />
-      <entry key="M15" value="297.74374432643555" />
-      <entry key="M30" value="618.2088074399283" />
-      <entry key="H1" value="1155.1889686908753" />
-      <entry key="H2" value="1721.3212693213432" />
-      <entry key="H4" value="2146.5375087372595" />
-      <entry key="D1" value="2606.797834244416" />
-      <entry key="W1" value="2697.5092732081944" />
+      <entry key="MS100" value="1.0213443790117873" />
+      <entry key="MS500" value="1.4632940309451854" />
+      <entry key="S2" value="1.825019429013485" />
+      <entry key="S5" value="1.9259460225273242" />
+      <entry key="S10" value="1.9622609005136336" />
+      <entry key="S30" value="1.9916510632182463" />
+      <entry key="S60" value="2.1083993058492547" />
+      <entry key="M2" value="2.5899834794276915" />
+      <entry key="M5" value="6.744828812274298" />
+      <entry key="M10" value="41.48410442441465" />
+      <entry key="M15" value="103.1225283045022" />
+      <entry key="M30" value="360.5332404222577" />
+      <entry key="H1" value="884.520417057842" />
+      <entry key="H2" value="1519.3194461045637" />
+      <entry key="H4" value="2037.7012847321714" />
+      <entry key="D1" value="2631.6339691709118" />
+      <entry key="W1" value="2752.285003452768" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -82,23 +84,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9796010847281497" />
-      <entry key="MS500" value="1.4176829938275846" />
-      <entry key="S2" value="4.178964992034947" />
-      <entry key="S5" value="6.721469562543225" />
-      <entry key="S10" value="8.673929449523651" />
-      <entry key="S30" value="11.147391832415682" />
-      <entry key="S60" value="14.073560620659912" />
-      <entry key="M2" value="27.28066058959044" />
-      <entry key="M5" value="88.18295287756392" />
-      <entry key="M10" value="196.60397579633337" />
-      <entry key="M15" value="297.74220294565197" />
-      <entry key="M30" value="618.2072203376525" />
-      <entry key="H1" value="1155.1874887683744" />
-      <entry key="H2" value="1721.3201635646592" />
-      <entry key="H4" value="2146.5368175234385" />
-      <entry key="D1" value="2606.797693969802" />
-      <entry key="W1" value="2697.5092524613365" />
+      <entry key="MS100" value="0.8723576707547952" />
+      <entry key="MS500" value="1.3945100335651546" />
+      <entry key="S2" value="1.7996054491905835" />
+      <entry key="S5" value="1.914849139850382" />
+      <entry key="S10" value="1.9565442731711908" />
+      <entry key="S30" value="1.9897061267191594" />
+      <entry key="S60" value="2.107412593875725" />
+      <entry key="M2" value="2.5894684835603807" />
+      <entry key="M5" value="6.74453456995786" />
+      <entry key="M10" value="41.4836184833507" />
+      <entry key="M15" value="103.12183574189928" />
+      <entry key="M30" value="360.5321890914134" />
+      <entry key="H1" value="884.5192026219162" />
+      <entry key="H2" value="1519.318423780416" />
+      <entry key="H4" value="2037.7006038187842" />
+      <entry key="D1" value="2631.6338232014014" />
+      <entry key="W1" value="2752.284981656063" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -175,7 +177,8 @@
     <MESSAGE value="feat: ltsc2022" />
     <MESSAGE value="refactor: nunit" />
     <MESSAGE value="refactor: don't ltsc2022 after all" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: don't ltsc2022 after all" />
+    <MESSAGE value="refactor: lint" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor: lint" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

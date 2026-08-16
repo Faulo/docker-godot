@@ -32,9 +32,9 @@ jobs:
               with:
                   dotnet-version: "9.0.x"
             - name: Restore
-              run: dotnet restore DockerGodot.sln
+              run: dotnet restore docker-godot.sln
             - name: Test
-              run: dotnet test DockerGodot.sln --configuration Release --no-restore
+              run: dotnet test docker-godot.sln --configuration Release --no-restore
 
     configuration:
         runs-on: ubuntu-24.04
