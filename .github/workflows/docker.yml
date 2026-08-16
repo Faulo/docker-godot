@@ -5,6 +5,8 @@ on:
         branches:
             - "main"
         paths:
+            - ".editorconfig"
+            - "DockerGodot.sln"
             - "common/**"
             - "linux/**"
             - "windows/**"
@@ -21,6 +23,23 @@ concurrency:
     cancel-in-progress: false
 
 jobs:
+    test:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
+        steps:
+            - name: Checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - name: Set up .NET
+              uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+              with:
+                  dotnet-version: "9.0.x"
+            - name: Restore
+              run: dotnet restore DockerGodot.sln
+            - name: Verify formatting
+              run: dotnet format DockerGodot.sln --verify-no-changes --no-restore
+            - name: Test
+              run: dotnet test DockerGodot.sln --configuration Release --no-restore
+
     configuration:
         runs-on: ubuntu-24.04
         timeout-minutes: 5
@@ -35,7 +54,9 @@ jobs:
               run: grep -m1 '^DOCKER_IMAGE=' .env >> "${GITHUB_OUTPUT}"
 
     publish:
-        needs: configuration
+        needs:
+            - configuration
+            - test
         uses: Faulo/workflows-docker/.github/workflows/publish.yml@v1
         with:
             image: ${{needs.configuration.outputs.image}}
