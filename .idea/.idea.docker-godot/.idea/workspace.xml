@@ -13,16 +13,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="907f10b6-7f34-45ca-81e0-eb717a20b7dc" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/ChecksumVerifierTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/ChecksumVerifierTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/Godot.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/Godot.Tests.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/GodotEditorSettingsTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/GodotEditorSettingsTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/PlatformInfoTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/PlatformInfoTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/ProcessRunnerTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/ProcessRunnerTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/ReleaseResolverTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/ReleaseResolverTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/RuntimeSetupTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/RuntimeSetupTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/VersionSelectorTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/VersionSelectorTests.cs" afterDir="false" />
-    </list>
+    <list default="true" id="907f10b6-7f34-45ca-81e0-eb717a20b7dc" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -53,23 +44,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.9937658197430626" />
-      <entry key="MS500" value="3.7410201175605198" />
-      <entry key="S2" value="8.850019855739012" />
-      <entry key="S5" value="22.157140827582364" />
-      <entry key="S10" value="39.529753840354665" />
-      <entry key="S30" value="64.63558632877789" />
-      <entry key="S60" value="75.02349653125424" />
-      <entry key="M2" value="88.48997477592624" />
-      <entry key="M5" value="154.11344648611438" />
-      <entry key="M10" value="262.6458296776423" />
-      <entry key="M15" value="361.4506387833257" />
-      <entry key="M30" value="681.8247858366979" />
-      <entry key="H1" value="1212.3149850913494" />
-      <entry key="H2" value="1759.9775699346633" />
-      <entry key="H4" value="2165.553110003953" />
-      <entry key="D1" value="2600.2445099203715" />
-      <entry key="W1" value="2685.461417267848" />
+      <entry key="MS100" value="1.000186416203878" />
+      <entry key="MS500" value="1.4243099447434242" />
+      <entry key="S2" value="4.184337234483614" />
+      <entry key="S5" value="6.725128364220533" />
+      <entry key="S10" value="8.676503325000688" />
+      <entry key="S30" value="11.148616766265304" />
+      <entry key="S60" value="14.07437840733017" />
+      <entry key="M2" value="27.281522748942912" />
+      <entry key="M5" value="88.18423216037772" />
+      <entry key="M10" value="196.60549106451694" />
+      <entry key="M15" value="297.74374432643555" />
+      <entry key="M30" value="618.2088074399283" />
+      <entry key="H1" value="1155.1889686908753" />
+      <entry key="H2" value="1721.3212693213432" />
+      <entry key="H4" value="2146.5375087372595" />
+      <entry key="D1" value="2606.797834244416" />
+      <entry key="W1" value="2697.5092732081944" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -91,23 +82,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.9325217593339323" />
-      <entry key="MS500" value="3.7164516125050855" />
-      <entry key="S2" value="8.833608008633474" />
-      <entry key="S5" value="22.140127194494173" />
-      <entry key="S10" value="39.514296364712244" />
-      <entry key="S30" value="64.62705506490984" />
-      <entry key="S60" value="75.01852965834821" />
-      <entry key="M2" value="88.48697137090232" />
-      <entry key="M5" value="154.11113611432" />
-      <entry key="M10" value="262.6437711067751" />
-      <entry key="M15" value="361.4487466705402" />
-      <entry key="M30" value="681.8230264420898" />
-      <entry key="H1" value="1212.3134277934041" />
-      <entry key="H2" value="1759.9764372876093" />
-      <entry key="H4" value="2165.5524116423585" />
-      <entry key="D1" value="2600.2443698279158" />
-      <entry key="W1" value="2685.461396589299" />
+      <entry key="MS100" value="0.9796010847281497" />
+      <entry key="MS500" value="1.4176829938275846" />
+      <entry key="S2" value="4.178964992034947" />
+      <entry key="S5" value="6.721469562543225" />
+      <entry key="S10" value="8.673929449523651" />
+      <entry key="S30" value="11.147391832415682" />
+      <entry key="S60" value="14.073560620659912" />
+      <entry key="M2" value="27.28066058959044" />
+      <entry key="M5" value="88.18295287756392" />
+      <entry key="M10" value="196.60397579633337" />
+      <entry key="M15" value="297.74220294565197" />
+      <entry key="M30" value="618.2072203376525" />
+      <entry key="H1" value="1155.1874887683744" />
+      <entry key="H2" value="1721.3201635646592" />
+      <entry key="H4" value="2146.5368175234385" />
+      <entry key="D1" value="2606.797693969802" />
+      <entry key="W1" value="2697.5092524613365" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -119,28 +110,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "KEY_CHAT_IN_TOOLWINDOW": "false",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "cidr.known.project.marker": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/Faulo/Desktop/Eclipse/docker-godot",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;KEY_CHAT_IN_TOOLWINDOW&quot;: &quot;false&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Faulo/Desktop/Eclipse/docker-godot&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="DockerGodot" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -182,7 +173,9 @@
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="feat: ltsc2022" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: ltsc2022" />
+    <MESSAGE value="refactor: nunit" />
+    <MESSAGE value="refactor: don't ltsc2022 after all" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor: don't ltsc2022 after all" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
