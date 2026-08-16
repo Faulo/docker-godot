@@ -6,6 +6,7 @@ on:
             - "main"
         paths:
             - ".editorconfig"
+            - ".gitattributes"
             - "DockerGodot.sln"
             - "common/**"
             - "linux/**"
