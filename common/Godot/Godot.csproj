@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <RootNamespace>DockerGodot</RootNamespace>
+        <RootNamespace>Godot</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="Godot.Tests" />
