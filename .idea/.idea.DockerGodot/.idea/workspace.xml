@@ -14,7 +14,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="907f10b6-7f34-45ca-81e0-eb717a20b7dc" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/windows/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/windows/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/ChecksumVerifierTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/ChecksumVerifierTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/Godot.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/Godot.Tests.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/GodotEditorSettingsTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/GodotEditorSettingsTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/PlatformInfoTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/PlatformInfoTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/ProcessRunnerTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/ProcessRunnerTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/ReleaseResolverTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/ReleaseResolverTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/RuntimeSetupTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/RuntimeSetupTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/Godot.Tests/VersionSelectorTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/common/Godot.Tests/VersionSelectorTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,25 +50,26 @@
     <commands />
     <urls />
   </component>
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="2.4296528267589617" />
-      <entry key="MS500" value="6.511713830194832" />
-      <entry key="S2" value="14.145615811589757" />
-      <entry key="S5" value="27.594695102776647" />
-      <entry key="S10" value="44.66384653508184" />
-      <entry key="S30" value="68.66049375981589" />
-      <entry key="S60" value="78.6133979865425" />
-      <entry key="M2" value="100.838743637815" />
-      <entry key="M5" value="191.34656943065028" />
-      <entry key="M10" value="292.98016325278115" />
-      <entry key="M15" value="385.28443339588523" />
-      <entry key="M30" value="704.1276351029651" />
-      <entry key="H1" value="1224.1217463242679" />
-      <entry key="H2" value="1744.8195855382362" />
-      <entry key="H4" value="2122.6986834541576" />
-      <entry key="D1" value="2522.061032576846" />
-      <entry key="W1" value="2599.7616255245102" />
+      <entry key="MS100" value="1.9937658197430626" />
+      <entry key="MS500" value="3.7410201175605198" />
+      <entry key="S2" value="8.850019855739012" />
+      <entry key="S5" value="22.157140827582364" />
+      <entry key="S10" value="39.529753840354665" />
+      <entry key="S30" value="64.63558632877789" />
+      <entry key="S60" value="75.02349653125424" />
+      <entry key="M2" value="88.48997477592624" />
+      <entry key="M5" value="154.11344648611438" />
+      <entry key="M10" value="262.6458296776423" />
+      <entry key="M15" value="361.4506387833257" />
+      <entry key="M30" value="681.8247858366979" />
+      <entry key="H1" value="1212.3149850913494" />
+      <entry key="H2" value="1759.9775699346633" />
+      <entry key="H4" value="2165.553110003953" />
+      <entry key="D1" value="2600.2445099203715" />
+      <entry key="W1" value="2685.461417267848" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -83,23 +91,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="2.3429452077199446" />
-      <entry key="MS500" value="6.45980547519251" />
-      <entry key="S2" value="14.110274723151173" />
-      <entry key="S5" value="27.5655189772741" />
-      <entry key="S10" value="44.640528171948986" />
-      <entry key="S30" value="68.64873149470341" />
-      <entry key="S60" value="78.60668183001978" />
-      <entry key="M2" value="100.83441238141832" />
-      <entry key="M5" value="191.34328889377926" />
-      <entry key="M10" value="292.977691757051" />
-      <entry key="M15" value="385.2823160601813" />
-      <entry key="M30" value="704.1257792258172" />
-      <entry key="H1" value="1224.120156440719" />
-      <entry key="H2" value="1744.8184541667117" />
-      <entry key="H4" value="2122.697994694905" />
-      <entry key="D1" value="2522.0608959942215" />
-      <entry key="W1" value="2599.7616054054956" />
+      <entry key="MS100" value="1.9325217593339323" />
+      <entry key="MS500" value="3.7164516125050855" />
+      <entry key="S2" value="8.833608008633474" />
+      <entry key="S5" value="22.140127194494173" />
+      <entry key="S10" value="39.514296364712244" />
+      <entry key="S30" value="64.62705506490984" />
+      <entry key="S60" value="75.01852965834821" />
+      <entry key="M2" value="88.48697137090232" />
+      <entry key="M5" value="154.11113611432" />
+      <entry key="M10" value="262.6437711067751" />
+      <entry key="M15" value="361.4487466705402" />
+      <entry key="M30" value="681.8230264420898" />
+      <entry key="H1" value="1212.3134277934041" />
+      <entry key="H2" value="1759.9764372876093" />
+      <entry key="H4" value="2165.5524116423585" />
+      <entry key="D1" value="2600.2443698279158" />
+      <entry key="W1" value="2685.461396589299" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -169,9 +177,12 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="feat: ltsc2022" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: ltsc2022" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

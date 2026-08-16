@@ -1,39 +1,37 @@
 using System;
-using Xunit;
+using NUnit.Framework;
 
 public sealed class VersionSelectorTests {
-    [Theory]
-    [InlineData("4", "4.6.2", true)]
-    [InlineData("4", "5.0.0", false)]
-    [InlineData("4.3", "4.3.0", true)]
-    [InlineData("4.3", "4.4.0", false)]
-    [InlineData("4.3.1", "4.3.1", true)]
-    [InlineData("4.3.1", "4.3.2", false)]
+    [TestCase("4", "4.6.2", true)]
+    [TestCase("4", "5.0.0", false)]
+    [TestCase("4.3", "4.3.0", true)]
+    [TestCase("4.3", "4.4.0", false)]
+    [TestCase("4.3.1", "4.3.1", true)]
+    [TestCase("4.3.1", "4.3.2", false)]
     public void MatchesSelectedVersionPrefix(string value, string candidate, bool expected) {
         var selector = VersionSelector.Parse("VERSION", value);
 
-        Assert.Equal(expected, selector.Matches(new Version(candidate)));
+        Assert.That(selector.Matches(new Version(candidate)), Is.EqualTo(expected));
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("4.")]
-    [InlineData(".4")]
-    [InlineData("4.3.1.2")]
-    [InlineData("v4")]
-    [InlineData("4.-1")]
-    [InlineData("999999999999999999999")]
+    [TestCase("")]
+    [TestCase(" ")]
+    [TestCase("4.")]
+    [TestCase(".4")]
+    [TestCase("4.3.1.2")]
+    [TestCase("v4")]
+    [TestCase("4.-1")]
+    [TestCase("999999999999999999999")]
     public void RejectsInvalidSelector(string value) {
-        var exception = Assert.Throws<InvalidOperationException>(() => VersionSelector.Parse("VERSION", value));
+        var exception = Assert.Throws<InvalidOperationException>(() => VersionSelector.Parse("VERSION", value))!;
 
-        Assert.Contains("VERSION", exception.Message, StringComparison.Ordinal);
+        Assert.That(exception.Message, Does.Contain("VERSION"));
     }
 
-    [Fact]
+    [Test]
     public void PreservesCanonicalSelectorText() {
         var selector = VersionSelector.Parse("VERSION", "4.03.001");
 
-        Assert.Equal("4.3.1", selector.ToString());
+        Assert.That(selector.ToString(), Is.EqualTo("4.3.1"));
     }
 }

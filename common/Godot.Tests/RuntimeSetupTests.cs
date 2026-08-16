@@ -1,17 +1,17 @@
 using System;
 using System.IO;
-using Xunit;
+using NUnit.Framework;
 
 public sealed class RuntimeSetupTests {
-    [Fact]
+    [Test]
     public void IsUnhealthyWithoutReadyState() {
         using var directory = new TemporaryDirectory();
         var setup = CreateSetup(directory.path);
 
-        Assert.False(setup.IsHealthy());
+        Assert.That(setup.IsHealthy(), Is.False);
     }
 
-    [Fact]
+    [Test]
     public void IsHealthyWhenEveryReadyPathExists() {
         using var directory = new TemporaryDirectory();
         string first = directory.Write("first", string.Empty);
@@ -19,23 +19,22 @@ public sealed class RuntimeSetupTests {
         File.WriteAllLines(Path.Combine(directory.path, "ready"), new[] { first, second });
         var setup = CreateSetup(directory.path);
 
-        Assert.True(setup.IsHealthy());
+        Assert.That(setup.IsHealthy(), Is.True);
     }
 
-    [Fact]
+    [Test]
     public void IsUnhealthyWhenAReadyPathIsMissing() {
         using var directory = new TemporaryDirectory();
         string existing = directory.Write("existing", string.Empty);
         File.WriteAllLines(Path.Combine(directory.path, "ready"), new[] { existing, Path.Combine(directory.path, "missing") });
         var setup = CreateSetup(directory.path);
 
-        Assert.False(setup.IsHealthy());
+        Assert.That(setup.IsHealthy(), Is.False);
     }
 
-    [Theory]
-    [InlineData("4", false)]
-    [InlineData("4.3", false)]
-    [InlineData("4.3.0", true)]
+    [TestCase("4", false)]
+    [TestCase("4.3", false)]
+    [TestCase("4.3.0", true)]
     public void OnlyExactSelectorsCanUseCache(string value, bool expected) {
         using var directory = new TemporaryDirectory();
         string executable = directory.Write("executable", string.Empty);
@@ -43,17 +42,17 @@ public sealed class RuntimeSetupTests {
 
         bool actual = RuntimeSetup.CanUseCache(selector, new[] { selector.ToString(), executable }, 1);
 
-        Assert.Equal(expected, actual);
+        Assert.That(actual, Is.EqualTo(expected));
     }
 
-    [Fact]
+    [Test]
     public void RejectsCacheWithMissingArtifact() {
         using var directory = new TemporaryDirectory();
         var selector = VersionSelector.Parse("VERSION", "4.3.0");
 
         bool actual = RuntimeSetup.CanUseCache(selector, new[] { selector.ToString(), Path.Combine(directory.path, "missing") }, 1);
 
-        Assert.False(actual);
+        Assert.That(actual, Is.False);
     }
 
     static RuntimeSetup CreateSetup(string stateRoot) {

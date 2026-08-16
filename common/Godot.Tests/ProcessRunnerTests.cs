@@ -1,17 +1,16 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
-using Xunit;
+using NUnit.Framework;
 
 public sealed class ProcessRunnerTests {
-    [Fact]
+    [Test]
     public void PreservesArgumentsWithoutManualQuoting() {
         string[] arguments = { "plain", "with spaces", "a\"quote", @"trailing\\", string.Empty };
 
         var start = ProcessRunner.CreateStartInfo("tool", arguments);
 
-        Assert.Equal(arguments, start.ArgumentList.Cast<string>());
-        Assert.False(start.UseShellExecute);
-        Assert.Equal(Environment.CurrentDirectory, start.WorkingDirectory);
+        Assert.That(start.ArgumentList.Cast<string>(), Is.EqualTo(arguments));
+        Assert.That(start.UseShellExecute, Is.False);
+        Assert.That(start.WorkingDirectory, Is.EqualTo(Environment.CurrentDirectory));
     }
 }
