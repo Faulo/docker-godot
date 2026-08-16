@@ -1,6 +1,6 @@
 # Godot Docker Image
 
-This repository builds Linux and Windows Docker images that install the requested stable Godot and optional Blender versions when their wrapper commands are invoked. Downloads are stored in volumes and reused by later containers.
+This repository builds Linux and Windows Docker images that install the requested stable Godot and optional Blender versions when the `godot` launcher is invoked. Downloads are stored in volumes and reused by later containers.
 
 ## Image Contents
 
@@ -8,14 +8,13 @@ Both image variants provide:
 
 - The standard Godot editor and matching export templates selected by `GODOT_VERSION`.
 - Blender selected by `BLENDER_VERSION`, when configured.
-- Thin `godot` and `blender` wrapper commands that install and launch the selected versions.
-- The shared `/godot/docker-godot` setup executable used by both wrappers and the health check.
+- A `godot` launcher that installs and starts the selected versions and reports readiness to the health check.
 
 The Windows image also provides PowerShell 7 as `pwsh`, allowing CI scripts to
 use modern native-command output and error handling instead of Windows
 PowerShell 5.1 behavior.
 
-The image currently supports standard Godot 4 builds. Godot .NET/Mono builds and a selector for choosing between standard and .NET builds will be added separately.
+The image supports standard Godot builds. Godot .NET/Mono builds and a selector for choosing between standard and .NET builds will be added separately.
 
 ## Runtime Setup
 
@@ -25,27 +24,27 @@ The image is designed for direct one-off use:
 docker run --rm --env GODOT_VERSION=4 faulo/godot:latest godot --version
 ```
 
-The working directory is `/godot` on Linux and `C:/godot` on Windows. All image-owned wrapper and setup files live there; only command-discovery links are placed outside that directory on Linux.
+The working directory is `/godot` on Linux and `C:/godot` on Windows. The image-owned `godot` executable lives there, and that directory is prepended to `PATH`.
 
-The `godot` wrapper performs the following work before starting the selected Godot executable:
+The `godot` launcher performs the following work before starting the selected Godot executable:
 
 1. If `BLENDER_VERSION` is set, resolve and install Blender.
 2. Resolve and install Godot and its matching export templates.
 3. Publish the readiness state consumed by the Docker health check.
 4. Start Godot with the original arguments and return its exit code.
 
-Godot imports `.blend` files by invoking an executable configured in its editor settings. When Blender is selected, the `godot` wrapper preserves the other editor settings and points `filesystem/import/blender/blender_path` at the resolved versioned Blender executable before Godot starts. This lets Godot manage Blender's persistent import process directly. The `blender` wrapper can also be invoked directly and installs only Blender.
+Godot imports `.blend` files by invoking an executable configured in its editor settings. When Blender is selected, the `godot` launcher preserves the other editor settings and points `filesystem/import/blender/blender_path` at the resolved versioned Blender executable before Godot starts. This lets Godot manage Blender's persistent import process directly.
 
 Installations use a lock in each shared volume, resume interrupted downloads into temporary directories, verify the publisher-provided SHA-512 or SHA-256 checksum, and publish a completed version directory atomically. This permits concurrent containers to share the same named volumes safely. Version resolution, locking, downloads, verification, readiness, editor configuration, and process launching share one C# implementation across Linux and Windows; only platform paths, artifact names, and archive extraction differ.
 
-The Docker health check only reports wrapper readiness; it never performs installation. The wrapper publishes readiness immediately before the requested Godot or Blender process starts, and Docker reports the container as `healthy` when the next probe observes it. Short-lived commands may exit before Docker runs its first health probe, while still returning the wrapped command's exit status normally.
+The Docker health check only reports launcher readiness; it never performs installation. The launcher publishes readiness immediately before the requested Godot process starts, and Docker reports the container as `healthy` when the next probe observes it. Short-lived commands may exit before Docker runs its first health probe, while still returning the launched command's exit status normally.
 
 ## Configuration
 
-The wrappers use these environment variables:
+The launcher uses these environment variables:
 
 - `GODOT_VERSION` is required by `godot` and selects the standard Godot editor and export templates.
-- `BLENDER_VERSION` is required by `blender`. It is optional for `godot`; when set, Blender is installed before Godot starts.
+- `BLENDER_VERSION` is optional; when set, Blender is installed before Godot starts.
 
 Only stable releases are considered. A selector that cannot be resolved to a stable release is an error, as is an invalid selector.
 
@@ -61,7 +60,7 @@ Godot itself labels a release without a patch component, such as `4.3-stable`, w
 
 Godot installations use the exact version identifier expected by their export templates. For example, standard Godot `4.3` is stored under `4.3.stable`. A future .NET installation would use a distinct identifier such as `4.3.stable.mono`.
 
-Floating selectors are resolved each time a wrapper starts. If a newer matching stable version has been published, it is installed alongside earlier versions rather than replacing them.
+Floating selectors are resolved each time the launcher starts. If a newer matching stable version has been published, it is installed alongside earlier versions rather than replacing them.
 
 ## Volumes
 

@@ -18,15 +18,13 @@ FROM debian:${OS_BASE}
 USER root
 WORKDIR /godot
 
-COPY --from=build --chmod=755 /out/docker-godot /godot/docker-godot
-COPY --chmod=755 linux/godot.sh /godot/godot
-COPY --chmod=755 linux/blender.sh /godot/blender
+COPY --from=build --chmod=755 /out/godot /godot/godot
 
+ENV PATH="/godot:${PATH}"
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-# Debian exposes libfontconfig as a virtual name; install its concrete runtime
-# provider explicitly.
+# Utilities
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
         libasound2 \
@@ -48,16 +46,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Keep Godot's standard data path while placing the large templates on their
-# own volume.
-RUN install -d /godot/binaries /godot/export_templates /blender /root/.local/share/godot && \
-    ln -s /godot/export_templates /root/.local/share/godot/export_templates && \
-    ln -s /godot/godot /usr/local/bin/godot && \
-    ln -s /godot/blender /usr/local/bin/blender
+RUN install -d /godot/binaries /godot/export_templates /blender
 
 VOLUME ["/godot/binaries", "/godot/export_templates", "/blender"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=2h --retries=3 \
-    CMD ["/godot/docker-godot", "health"]
+    CMD ["godot", "health"]
 
 CMD ["godot"]
