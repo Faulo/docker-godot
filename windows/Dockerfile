@@ -1,4 +1,17 @@
-ARG OS_BASE=1809
+ARG OS_BASE=ltsc2019
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2019 AS build
+
+WORKDIR C:/source
+
+COPY common/Godot/ .
+
+RUN dotnet publish Godot.csproj \
+        --configuration Release \
+        --runtime win-x64 \
+        --self-contained true \
+        --output C:/out
+
 FROM mcr.microsoft.com/windows:${OS_BASE}
 
 ARG POWERSHELL_VERSION=7.6.4
@@ -9,7 +22,7 @@ SHELL ["C:/Windows/System32/WindowsPowerShell/v1.0/powershell", "-ExecutionPolic
 USER ContainerAdministrator
 WORKDIR C:/godot
 
-COPY common/Program.cs C:/godot/Program.cs
+COPY --from=build C:/out/docker-godot.exe C:/godot/docker-godot.exe
 
 # Let the daemon fetch this large file; legacy Windows container networking is
 # prohibitively slow. The publisher checksum is verified before extraction.
@@ -29,8 +42,6 @@ RUN $archive = 'C:/powershell.zip'; \
 RUN New-Item -ItemType Directory -Force C:/godot/binaries, C:/godot/export_templates, C:/blender, C:/run/docker-godot | Out-Null; \
     $godotData = 'C:/Users/ContainerAdministrator/AppData/Roaming/Godot'; \
     New-Item -ItemType Directory -Force $godotData | Out-Null; \
-    & C:/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe /nologo /optimize+ /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll '/out:C:\godot\docker-godot.exe' 'C:\godot\Program.cs'; \
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; \
     Copy-Item C:/godot/docker-godot.exe C:/godot/godot.exe; \
     Copy-Item C:/godot/docker-godot.exe C:/godot/blender.exe; \
     $env:PATH = 'C:\godot;C:\Windows\system32;C:\Windows;C:\Windows\System32\WindowsPowerShell\v1.0'; \

@@ -4,5 +4,5 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-common/bin/
-common/obj/
+common/**/bin/
+common/**/obj/

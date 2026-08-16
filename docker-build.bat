@@ -12,20 +12,26 @@ if not defined DOCKER_IMAGE (
     goto build_done
 )
 
-if not defined DOCKER_OS (
-    echo Usage: docker-build.bat ^<linux^|windows^>
-    goto build_done
+if defined DOCKER_OS (
+    set "DOCKER_CONTEXT_ARGS=--context %DOCKER_OS%"
+) else (
+    for /f %%i in ('docker info --format "{{.OSType}}"') do set "DOCKER_OS=%%i"
 )
 
-set "DOCKER_CONTEXT_ARGS=--context %DOCKER_OS%"
+if not defined DOCKER_OS (
+    echo Failed to determine the Docker OS
+    goto build_done
+)
 
 if not exist "%DOCKER_OS%\Dockerfile" (
     echo Missing Dockerfile: %DOCKER_OS%\Dockerfile
     goto build_done
 )
 
-docker %DOCKER_CONTEXT_ARGS% build --pull --tag tmp/%DOCKER_IMAGE%:latest --file "%DOCKER_OS%\Dockerfile" .
+pushd "%DOCKER_OS%"
+docker %DOCKER_CONTEXT_ARGS% build --pull --tag tmp/%DOCKER_IMAGE%:latest .
 set "BUILD_EXIT_CODE=%ERRORLEVEL%"
+popd
 
 :build_done
 pause
