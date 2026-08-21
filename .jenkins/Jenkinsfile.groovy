@@ -48,7 +48,6 @@ pipeline {
         disableConcurrentBuilds()
         disableResume()
         disableRestartFromStage()
-        skipDefaultCheckout()
     }
     stages {
         stage('Integration Tests') {
@@ -70,7 +69,7 @@ pipeline {
                     stage('Empty Project Import') {
                         steps {
                             script {
-                                fromEnvFile {
+                                withEnvFile {
                                     testEmptyProjectImport()
                                 }
                             }
