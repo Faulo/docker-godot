@@ -11,6 +11,9 @@ static class Program {
             }
 
             string executable = setup.PrepareGodot();
+            if (PlatformInfo.current.isWindows) {
+                GodotCommandLine.ValidateImportProject(arguments, Environment.CurrentDirectory);
+            }
             return ProcessRunner.Run(executable, arguments, false);
         } catch (Exception exception) {
             Console.Error.WriteLine("docker-godot: " + exception.Message);

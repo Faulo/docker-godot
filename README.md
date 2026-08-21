@@ -46,6 +46,12 @@ The launcher uses these environment variables:
 - `GODOT_VERSION` is required by `godot` and selects the standard Godot editor and export templates.
 - `BLENDER_VERSION` is optional; when set, Blender is installed before Godot starts.
 
+On Windows, the launcher rejects `--import` when the selected working directory
+does not contain a `project.godot` file. This matches the command's project
+requirement and avoids a native Godot process that otherwise remains running
+after reporting the missing project. An explicit `--path` selects the directory
+that is checked.
+
 Only stable releases are considered. A selector that cannot be resolved to a stable release is an error, as is an invalid selector.
 
 ## Version Selectors
