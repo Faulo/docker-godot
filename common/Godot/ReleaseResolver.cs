@@ -12,11 +12,7 @@ interface IReleaseResolver {
     BlenderRelease ResolveBlender(VersionSelector selector, PlatformInfo platform);
 }
 
-sealed class ReleaseResolver : IReleaseResolver {
-    static readonly Regex GodotStableTag = new("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?-stable$");
-    static readonly Regex GodotArchiveStableTag = new("(?<![0-9.])\\d+\\.\\d+(?:\\.\\d+)?-stable(?![A-Za-z0-9.-])");
-    static readonly Regex BlenderSeries = new("Blender(\\d+)\\.(\\d+)/");
-
+sealed partial class ReleaseResolver : IReleaseResolver {
     readonly IDownloadClient _downloadClient;
 
     public ReleaseResolver(IDownloadClient downloadClient) => _downloadClient = downloadClient;
@@ -48,7 +44,7 @@ sealed class ReleaseResolver : IReleaseResolver {
     }
 
     internal static IReadOnlyList<string> ParseGodotArchiveTags(string response) {
-        return GodotArchiveStableTag.Matches(response)
+        return GodotArchiveStableTag().Matches(response)
             .Select(match => match.Value)
             .Distinct(StringComparer.Ordinal)
             .ToArray();
@@ -57,7 +53,7 @@ sealed class ReleaseResolver : IReleaseResolver {
     internal static IReadOnlyList<GodotRelease> ParseGodotReleases(IEnumerable<string> tags, VersionSelector selector) {
         var releases = new List<GodotRelease>();
         foreach (string tag in tags) {
-            var match = GodotStableTag.Match(tag);
+            var match = GodotStableTag().Match(tag);
             if (!match.Success) {
                 continue;
             }
@@ -76,7 +72,7 @@ sealed class ReleaseResolver : IReleaseResolver {
     }
 
     internal static IReadOnlyList<string> ParseBlenderSeries(string response, VersionSelector selector) {
-        return BlenderSeries.Matches(response)
+        return BlenderSeries().Matches(response)
             .Where(match => int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) == selector.Component(0))
             .Where(match => selector.ComponentCount() < 2 || int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) == selector.Component(1))
             .Select(match => match.Value)
@@ -97,11 +93,20 @@ sealed class ReleaseResolver : IReleaseResolver {
     }
 
     static string SeriesMinor(string series) {
-        var match = BlenderSeries.Match(series);
+        var match = BlenderSeries().Match(series);
         if (!match.Success) {
             throw new InvalidOperationException("invalid Blender release series: " + series);
         }
 
         return match.Groups[2].Value;
     }
+
+    [GeneratedRegex(@"^(\d+)\.(\d+)(?:\.(\d+))?-stable$")]
+    private static partial Regex GodotStableTag();
+
+    [GeneratedRegex(@"(?<![0-9.])\d+\.\d+(?:\.\d+)?-stable(?![A-Za-z0-9.-])")]
+    private static partial Regex GodotArchiveStableTag();
+
+    [GeneratedRegex(@"Blender(\d+)\.(\d+)/")]
+    private static partial Regex BlenderSeries();
 }

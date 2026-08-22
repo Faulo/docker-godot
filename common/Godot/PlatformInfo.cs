@@ -42,7 +42,7 @@ sealed class PlatformInfo {
     public string BlenderArchive(string version) => isWindows ? "blender-" + version + "-windows-x64.zip" : "blender-" + version + "-linux-x64.tar.xz";
 
     public string BlenderListingPattern(string major, string minor) {
-        string suffix = isWindows ? "windows-x64\\.zip" : "linux-x64\\.tar\\.xz";
+        string suffix = isWindows ? @"windows-x64\.zip" : @"linux-x64\.tar\.xz";
         return "blender-(" + Regex.Escape(major) + "\\." + Regex.Escape(minor) + "\\.[0-9]+)-" + suffix;
     }
 
@@ -59,7 +59,7 @@ sealed class PlatformInfo {
         }
 
         if (isWindows) {
-            ProcessRunner.Run("cmd.exe", new[] { "/d", "/c", "mklink", "/J", link, templateRoot }, true);
+            ProcessRunner.Run("cmd.exe", ["/d", "/c", "mklink", "/J", link, templateRoot], true);
         } else {
             Directory.CreateSymbolicLink(link, templateRoot);
         }

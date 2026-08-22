@@ -1,5 +1,4 @@
 using System;
-using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
@@ -41,10 +40,20 @@ public sealed class GodotEditorSettingsTests {
 
     [Test]
     public void PreservesCrLfAroundReplacedSetting() {
-        string existing = "[resource]\r\nfilesystem/import/blender/blender_path = \"old\"\r\nnext = true\r\n";
+        const string existing = "[resource]\r\nfilesystem/import/blender/blender_path = \"old\"\r\nnext = true\r\n";
 
         string result = GodotEditorSettings.UpdateContents(existing, SETTING);
 
         Assert.That(result, Is.EqualTo("[resource]\r\n" + SETTING + "\r\nnext = true\r\n"));
+    }
+
+    [Test]
+    public void TreatsDollarSignsInSettingAsLiteralText() {
+        const string existing = "[resource]\nfilesystem/import/blender/blender_path = \"old\"\n";
+        const string setting = "filesystem/import/blender/blender_path = \"/blender/$&tool\"";
+
+        string result = GodotEditorSettings.UpdateContents(existing, setting);
+
+        Assert.That(result, Is.EqualTo("[resource]\n" + setting + "\n"));
     }
 }

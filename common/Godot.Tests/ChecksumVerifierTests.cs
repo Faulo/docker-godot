@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
-using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;

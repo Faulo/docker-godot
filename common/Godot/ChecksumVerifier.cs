@@ -12,7 +12,7 @@ static class ChecksumVerifier {
 
     static void Verify(string archive, string sums, string algorithm, Func<HashAlgorithm> createHasher) {
         string filename = Path.GetFileName(archive);
-        string pattern = "^([0-9a-fA-F]+)\\s+\\*?" + Regex.Escape(filename) + "\\r?$";
+        string pattern = @"^([0-9a-fA-F]+)\s+\*?" + Regex.Escape(filename) + @"\r?$";
         var match = Regex.Match(File.ReadAllText(sums), pattern, RegexOptions.Multiline);
         if (!match.Success) {
             throw new InvalidDataException("missing " + algorithm + " checksum for " + filename);

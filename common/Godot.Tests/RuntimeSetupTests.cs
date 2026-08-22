@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
@@ -19,7 +18,7 @@ public sealed class RuntimeSetupTests {
         using var directory = new TemporaryDirectory();
         string first = directory.Write("first", string.Empty);
         string second = directory.Write("second", string.Empty);
-        File.WriteAllLines(Path.Combine(directory.path, "ready"), new[] { first, second });
+        File.WriteAllLines(Path.Combine(directory.path, "ready"), [first, second]);
         var setup = CreateSetup(directory.path);
 
         Assert.That(setup.IsHealthy(), Is.True);
@@ -29,7 +28,7 @@ public sealed class RuntimeSetupTests {
     public void IsUnhealthyWhenAReadyPathIsMissing() {
         using var directory = new TemporaryDirectory();
         string existing = directory.Write("existing", string.Empty);
-        File.WriteAllLines(Path.Combine(directory.path, "ready"), new[] { existing, Path.Combine(directory.path, "missing") });
+        File.WriteAllLines(Path.Combine(directory.path, "ready"), [existing, Path.Combine(directory.path, "missing")]);
         var setup = CreateSetup(directory.path);
 
         Assert.That(setup.IsHealthy(), Is.False);
@@ -43,7 +42,7 @@ public sealed class RuntimeSetupTests {
         string executable = directory.Write("executable", string.Empty);
         var selector = VersionSelector.Parse("VERSION", value);
 
-        bool actual = RuntimeSetup.CanUseCache(selector, new[] { selector.ToString(), executable }, 1);
+        bool actual = RuntimeSetup.CanUseCache(selector, [selector.ToString(), executable], 1);
 
         Assert.That(actual, Is.EqualTo(expected));
     }
@@ -53,7 +52,7 @@ public sealed class RuntimeSetupTests {
         using var directory = new TemporaryDirectory();
         var selector = VersionSelector.Parse("VERSION", "4.3.0");
 
-        bool actual = RuntimeSetup.CanUseCache(selector, new[] { selector.ToString(), Path.Combine(directory.path, "missing") }, 1);
+        bool actual = RuntimeSetup.CanUseCache(selector, [selector.ToString(), Path.Combine(directory.path, "missing")], 1);
 
         Assert.That(actual, Is.False);
     }

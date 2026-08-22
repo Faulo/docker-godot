@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
@@ -8,7 +7,7 @@ namespace Godot.Tests;
 public sealed class ProcessRunnerTests {
     [Test]
     public void PreservesArgumentsWithoutManualQuoting() {
-        string[] arguments = { "plain", "with spaces", "a\"quote", @"trailing\\", string.Empty };
+        string[] arguments = ["plain", "with spaces", "a\"quote", @"trailing\\", string.Empty];
 
         var start = ProcessRunner.CreateStartInfo("tool", arguments);
 

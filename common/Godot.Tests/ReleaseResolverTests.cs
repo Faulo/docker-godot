@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
@@ -16,7 +15,7 @@ public sealed class ReleaseResolverTests {
 
         var tags = ReleaseResolver.ParseGodotArchiveTags(html);
 
-        Assert.That(tags, Is.EqualTo(new[] { "4.3-stable", "4.3.2-stable" }));
+        Assert.That(tags, Is.EqualTo(["4.3-stable", "4.3.2-stable"]));
     }
 
     [Test]
@@ -24,10 +23,10 @@ public sealed class ReleaseResolverTests {
         var selector = VersionSelector.Parse("VERSION", "4.3");
 
         var releases = ReleaseResolver.ParseGodotReleases(
-            new[] { "4.3-stable", "4.3.2-stable", "4.3.3-rc1", "4.4-stable", "not-a-version" },
+            ["4.3-stable", "4.3.2-stable", "4.3.3-rc1", "4.4-stable", "not-a-version"],
             selector);
 
-        Assert.That(releases.Select(release => release.version), Is.EqualTo(new[] { new Version(4, 3, 0), new Version(4, 3, 2) }));
+        Assert.That(releases.Select(release => release.version), Is.EqualTo([new Version(4, 3, 0), new Version(4, 3, 2)]));
     }
 
     [Test]
@@ -37,7 +36,7 @@ public sealed class ReleaseResolverTests {
 
         var series = ReleaseResolver.ParseBlenderSeries(html, selector);
 
-        Assert.That(series, Is.EqualTo(new[] { "Blender4.2/", "Blender4.3/" }));
+        Assert.That(series, Is.EqualTo(["Blender4.2/", "Blender4.3/"]));
     }
 
     [TestCase(false, "blender-4.2.1-linux-x64.tar.xz", "4.2.1")]

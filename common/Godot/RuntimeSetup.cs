@@ -120,7 +120,7 @@ sealed class RuntimeSetup {
             }
 
             if (!_platform.isWindows) {
-                ProcessRunner.Run("chmod", new[] { "+x", unpackedExecutable }, true);
+                ProcessRunner.Run("chmod", ["+x", unpackedExecutable], true);
             }
 
             Directory.Move(unpacked, installDirectory);
@@ -186,7 +186,7 @@ sealed class RuntimeSetup {
 
                 Directory.Move(source, installDirectory);
             } else {
-                ProcessRunner.Run("tar", new[] { "-xJf", archive, "-C", unpacked, "--strip-components=1" }, true);
+                ProcessRunner.Run("tar", ["-xJf", archive, "-C", unpacked, "--strip-components=1"], true);
                 if (!File.Exists(Path.Combine(unpacked, _platform.blenderExecutable))) {
                     throw new InvalidDataException("Blender archive has an unexpected layout");
                 }
@@ -259,14 +259,14 @@ sealed class RuntimeSetup {
 
     void WriteBlenderCache(VersionSelector selector, string executable) {
         Directory.CreateDirectory(_platform.stateRoot);
-        File.WriteAllLines(Path.Combine(_platform.stateRoot, "blender"), new[] { selector.ToString(), executable });
+        File.WriteAllLines(Path.Combine(_platform.stateRoot, "blender"), [selector.ToString(), executable]);
     }
 
     void WriteGodotCache(VersionSelector selector, string executable) {
         string installId = Path.GetFileName(Path.GetDirectoryName(executable)!);
         string templateMarker = Path.Combine(_platform.templateRoot, installId, "version.txt");
         Directory.CreateDirectory(_platform.stateRoot);
-        File.WriteAllLines(Path.Combine(_platform.stateRoot, "godot"), new[] { selector.ToString(), executable, templateMarker });
+        File.WriteAllLines(Path.Combine(_platform.stateRoot, "godot"), [selector.ToString(), executable, templateMarker]);
     }
 
     void ClearReady() {
@@ -284,7 +284,7 @@ sealed class RuntimeSetup {
         File.Move(temporary, ready, true);
     }
 
-    static string[] ReadLinesIfPresent(string path) => File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>();
+    static string[] ReadLinesIfPresent(string path) => File.Exists(path) ? File.ReadAllLines(path) : [];
 
     static void Log(string message) => Console.Out.WriteLine("docker-godot: " + message);
 }

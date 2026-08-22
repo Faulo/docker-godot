@@ -6,9 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Godot;
 
-static class GodotEditorSettings {
-    static readonly Regex BlenderSetting = new("^filesystem/import/blender/blender_path = [^\\r\\n]*", RegexOptions.Multiline);
-
+static partial class GodotEditorSettings {
     public static void Configure(PlatformInfo platform, string godotExecutable, string blenderExecutable) {
         string installId = new DirectoryInfo(Path.GetDirectoryName(godotExecutable)!).Name;
         string[] parts = installId.Split('.');
@@ -29,10 +27,13 @@ static class GodotEditorSettings {
                    + "[resource]" + Environment.NewLine + setting + Environment.NewLine;
         }
 
-        return BlenderSetting.IsMatch(contents)
-            ? BlenderSetting.Replace(contents, setting)
+        return BlenderSetting().IsMatch(contents)
+            ? BlenderSetting().Replace(contents, _ => setting)
             : contents.TrimEnd() + Environment.NewLine + setting + Environment.NewLine;
     }
+
+    [GeneratedRegex(@"^filesystem/import/blender/blender_path = [^\r\n]*", RegexOptions.Multiline)]
+    private static partial Regex BlenderSetting();
 
     static string FindSettingsFile(string settingsRoot, int major, int minor) {
         for (int candidateMinor = minor; candidateMinor >= 3; candidateMinor--) {

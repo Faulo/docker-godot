@@ -1,4 +1,3 @@
-using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
