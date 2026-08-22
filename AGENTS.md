@@ -29,21 +29,35 @@ Builds are generally large, network-dependent, and may require matching Windows 
 Report skipped targets and concrete reasons. Preserve checksum verification,
 download validation, native exit-code checks, and explicit error handling.
 
-### Release
+#### Release
 
 When release operations are authorized, the complete release cycle is:
 
-1. Implement the features and update the integration tests in `.jenkins/Jenkinsfile.groovy` as needed.
-2. Run the local test suite.
-3. Build a candidate images (using the `tmp` namespace) on docker context `dende` (Windows) and `garl` (Linux).
-4. Commit and push just the integration tests.
-5. Run this image's job in `https://ci.slothsoft.net/job/jenkins/` via MCP and with `DOCKER_NAMESPACE` set to `tmp` and watch its complete console log.
-6. If the candidate integration test fails, fix the issue, then repeat from step 2.
-7. After the candidate passes, commit and push the changes, then watch the GitHub CI image build.
-8. If GitHub CI fails, fix the issue, then repeat from step 2.
-9. After GitHub CI passes, pull the newly-built images (now in the `faulo` namespace) to `dende` and `garl`.
-10. Run this plugin's job in `https://ci.slothsoft.net/job/jenkins/` via MCP and with `DOCKER_NAMESPACE` set to `faulo` and watch its complete console log.
-11. If any post-push check or final integration test fails, fix the issue and repeat the full cycle from step 1.
+#### Phase 1: Design Contract
+
+1. Review the tests in `.jenkins/Jenkinsfile.groovy` and update them as needed so that they expect the feature to be written.
+2. Commit and push the tests.
+3. Run this plugin's job in `https://ci.slothsoft.net/job/jenkins/` via MCP and with `DOCKER_NAMESPACE` set to `faulo` and watch its complete console log.
+4. If the integration tests pass, repeat from step 1 to make them show the defect.
+5. After integration tests fail, move on to the next phase.
+
+#### Phase 2: Implementation
+
+1. Implement the feature using the local test suite to unit test as applicable.
+2. Build candidate images (using the `tmp` namespace) on docker context `dende` (Windows) and `garl` (Linux).
+3. Run this image's job in `https://ci.slothsoft.net/job/jenkins/` via MCP and with `DOCKER_NAMESPACE` set to `tmp` and watch its complete console log.
+4. If the integration tests fail, repeat from step 1 to fix the issue.
+5. After integration tests pass, move on to the next phase.
+
+#### Phase 3: Shipping
+
+1. Commit and push the changes, then watch the GitHub CI image build.
+2. If GitHub CI fails, fix the issue, then repeat from step 1.
+3. After GitHub CI passes, pull the newly-built images (now in the `faulo` namespace) on docker context `dende` and `garl`.
+4. Run this plugin's job in `https://ci.slothsoft.net/job/jenkins/` via MCP and with `DOCKER_NAMESPACE` set to `faulo` and watch its complete console log.
+5. If any post-push check or final integration test fails, fix the issue and repeat the full cycle from Phase 1.
+
+If the design contract changes at any point, repeat from Phase 1, step 1.
 
 ### Documentation and style
 

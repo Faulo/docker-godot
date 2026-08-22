@@ -35,41 +35,43 @@ def testEmptyProjectImport() {
     }
 }
 
-pipeline {
-    agent none
-    parameters {
+properties([
+    parameters([
         choice(
             name: 'DOCKER_NAMESPACE',
             choices: ['faulo', 'tmp'],
             description: 'Docker image namespace to test'
         )
-    }
-    options {
-        disableConcurrentBuilds()
-        disableResume()
-        disableRestartFromStage()
-    }
-    stages {
-        stage('Integration Tests') {
-            matrix {
-                axes {
-                    axis {
-                        name 'HOST'
-                        values 'Dende', 'Garl'
-                    }
-                    axis {
-                        name 'GODOT_VERSION'
-                        values '4.0', '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7'
-                    }
-                }
-                agent {
-                    label "$HOST"
-                }
-                stages {
-                    stage('Empty Project Import') {
-                        steps {
-                            script {
+    ]),
+    disableConcurrentBuilds(),
+    disableResume()
+])
+
+def hosts = ['Dende', 'Garl']
+def godotVersions = ['4.0', '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7']
+def dockerNamespace = params.DOCKER_NAMESPACE ?: 'faulo'
+
+stage('Integration Tests') {
+    for (def host in hosts) {
+        stage("Host: ${host}") {
+            node(host) {
+                deleteDir()
+                checkout scm
+
+                for (def godotVersion in godotVersions) {
+                    stage("Godot v${godotVersion}") {
+                        catchError(
+                            message: "Godot ${godotVersion} integration test failed on ${host}",
+                            stageResult: 'FAILURE',
+                            buildResult: 'FAILURE',
+                            catchInterruptions: false
+                        ) {
+                            withEnv([
+                                "DOCKER_NAMESPACE=${dockerNamespace}",
+                                "GODOT_VERSION=${godotVersion}"
+                            ]) {
                                 withEnvFile {
+                                    echo "Testing ${candidateImage()} with Godot ${godotVersion} on ${host}"
                                     testEmptyProjectImport()
                                 }
                             }
