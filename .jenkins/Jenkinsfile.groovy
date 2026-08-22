@@ -54,7 +54,7 @@ pipeline {
             matrix {
                 axes {
                     axis {
-                        name 'TEST_NODE'
+                        name 'HOST'
                         values 'Dende', 'Garl'
                     }
                     axis {
@@ -63,7 +63,7 @@ pipeline {
                     }
                 }
                 agent {
-                    label "${TEST_NODE}"
+                    label "${HOST}"
                 }
                 stages {
                     stage('Empty Project Import') {
