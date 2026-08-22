@@ -1,5 +1,5 @@
 using System;
-using DockerGodot;
+using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;

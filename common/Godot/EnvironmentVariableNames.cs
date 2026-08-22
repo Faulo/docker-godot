@@ -1,4 +1,4 @@
-namespace DockerGodot;
+namespace Godot;
 
 static class EnvironmentVariableNames {
     public const string GODOT_VERSION = "GODOT_VERSION";

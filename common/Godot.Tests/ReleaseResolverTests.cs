@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using DockerGodot;
+using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
@@ -9,10 +9,10 @@ public sealed class ReleaseResolverTests {
     [Test]
     public void ParsesDistinctStableGodotTagsFromArchivePage() {
         const string html = """
-            <a href="/download/archive/4.3-stable/">4.3-stable</a>
-            <a href="/download/archive/4.3.2-stable/">4.3.2-stable</a>
-            <a href="/download/archive/4.4-rc1/">4.4-rc1</a>
-            """;
+                            <a href="/download/archive/4.3-stable/">4.3-stable</a>
+                            <a href="/download/archive/4.3.2-stable/">4.3.2-stable</a>
+                            <a href="/download/archive/4.4-rc1/">4.4-rc1</a>
+                            """;
 
         var tags = ReleaseResolver.ParseGodotArchiveTags(html);
 
@@ -53,7 +53,5 @@ public sealed class ReleaseResolverTests {
         Assert.That(release.version, Is.EqualTo(new Version(expected)));
     }
 
-    static PlatformInfo CreatePlatform(bool windows) {
-        return new PlatformInfo(windows, "godot", "templates", "blender", "state", "data", "settings");
-    }
+    static PlatformInfo CreatePlatform(bool windows) => new(windows, "godot", "templates", "blender", "state", "data", "settings");
 }

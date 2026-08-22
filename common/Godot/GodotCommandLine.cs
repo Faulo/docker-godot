@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace DockerGodot;
+namespace Godot;
 
 static class GodotCommandLine {
     public static void ValidateImportProject(IEnumerable<string> arguments, string workingDirectory) {

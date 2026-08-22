@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace DockerGodot;
+namespace Godot;
 
 interface IReleaseResolver {
     GodotRelease ResolveGodot(VersionSelector selector);
@@ -19,9 +19,7 @@ sealed class ReleaseResolver : IReleaseResolver {
 
     readonly IDownloadClient _downloadClient;
 
-    public ReleaseResolver(IDownloadClient downloadClient) {
-        _downloadClient = downloadClient;
-    }
+    public ReleaseResolver(IDownloadClient downloadClient) => _downloadClient = downloadClient;
 
     public GodotRelease ResolveGodot(VersionSelector selector) {
         string response = _downloadClient.ReadText("https://godotengine.org/download/archive/", false);
@@ -79,7 +77,6 @@ sealed class ReleaseResolver : IReleaseResolver {
 
     internal static IReadOnlyList<string> ParseBlenderSeries(string response, VersionSelector selector) {
         return BlenderSeries.Matches(response)
-            .Cast<Match>()
             .Where(match => int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) == selector.Component(0))
             .Where(match => selector.ComponentCount() < 2 || int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture) == selector.Component(1))
             .Select(match => match.Value)

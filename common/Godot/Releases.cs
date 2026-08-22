@@ -1,6 +1,6 @@
 using System;
 
-namespace DockerGodot;
+namespace Godot;
 
 sealed record GodotRelease(Version version, string tag);
 

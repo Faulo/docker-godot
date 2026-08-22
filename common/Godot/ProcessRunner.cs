@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace DockerGodot;
+namespace Godot;
 
 static class ProcessRunner {
     public static int Run(string executable, IEnumerable<string> arguments, bool requireSuccess) {
@@ -18,11 +18,7 @@ static class ProcessRunner {
     }
 
     internal static ProcessStartInfo CreateStartInfo(string executable, IEnumerable<string> arguments) {
-        var start = new ProcessStartInfo {
-            FileName = executable,
-            UseShellExecute = false,
-            WorkingDirectory = Environment.CurrentDirectory
-        };
+        var start = new ProcessStartInfo { FileName = executable, UseShellExecute = false, WorkingDirectory = Environment.CurrentDirectory };
         foreach (string argument in arguments) {
             start.ArgumentList.Add(argument);
         }

@@ -1,14 +1,12 @@
 using System;
 using System.Globalization;
 
-namespace DockerGodot;
+namespace Godot;
 
 sealed class VersionSelector {
     readonly int[] _components;
 
-    VersionSelector(int[] components) {
-        _components = components;
-    }
+    VersionSelector(int[] components) => _components = components;
 
     public static VersionSelector Parse(string name, string value) {
         if (string.IsNullOrWhiteSpace(value)) {
@@ -32,23 +30,15 @@ sealed class VersionSelector {
 
     public bool Matches(Version version) {
         return _components[0] == version.Major
-            && (_components.Length < 2 || _components[1] == version.Minor)
-            && (_components.Length < 3 || _components[2] == version.Build);
+               && (_components.Length < 2 || _components[1] == version.Minor)
+               && (_components.Length < 3 || _components[2] == version.Build);
     }
 
-    public int Component(int index) {
-        return _components[index];
-    }
+    public int Component(int index) => _components[index];
 
-    public int ComponentCount() {
-        return _components.Length;
-    }
+    public int ComponentCount() => _components.Length;
 
-    public override string ToString() {
-        return string.Join('.', _components);
-    }
+    public override string ToString() => string.Join('.', _components);
 
-    static InvalidOperationException Invalid(string name, string value) {
-        return new InvalidOperationException(name + " must contain one to three numeric components, got: " + value);
-    }
+    static InvalidOperationException Invalid(string name, string value) => new(name + " must contain one to three numeric components, got: " + value);
 }

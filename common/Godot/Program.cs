@@ -1,6 +1,6 @@
 using System;
 
-namespace DockerGodot;
+namespace Godot;
 
 static class Program {
     static int Main(string[] arguments) {

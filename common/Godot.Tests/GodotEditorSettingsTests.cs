@@ -1,5 +1,5 @@
 using System;
-using DockerGodot;
+using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
@@ -13,7 +13,7 @@ public sealed class GodotEditorSettingsTests {
 
         Assert.That(result, Is.EqualTo(
             "[gd_resource type=\"EditorSettings\" format=3]" + Environment.NewLine + Environment.NewLine
-                + "[resource]" + Environment.NewLine + SETTING + Environment.NewLine));
+            + "[resource]" + Environment.NewLine + SETTING + Environment.NewLine));
     }
 
     [Test]
@@ -29,8 +29,8 @@ public sealed class GodotEditorSettingsTests {
     [Test]
     public void ReplacesExistingBlenderSettingInPlace() {
         string existing = "[resource]" + Environment.NewLine
-            + "filesystem/import/blender/blender_path = \"old\"" + Environment.NewLine
-            + "interface/editor/display_scale = 1.0" + Environment.NewLine;
+                                       + "filesystem/import/blender/blender_path = \"old\"" + Environment.NewLine
+                                       + "interface/editor/display_scale = 1.0" + Environment.NewLine;
 
         string result = GodotEditorSettings.UpdateContents(existing, SETTING);
 

@@ -3,16 +3,12 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
-namespace DockerGodot;
+namespace Godot;
 
 static class ChecksumVerifier {
-    public static void VerifySha512(string archive, string sums) {
-        Verify(archive, sums, "SHA512", SHA512.Create);
-    }
+    public static void VerifySha512(string archive, string sums) => Verify(archive, sums, "SHA512", SHA512.Create);
 
-    public static void VerifySha256(string archive, string sums) {
-        Verify(archive, sums, "SHA256", SHA256.Create);
-    }
+    public static void VerifySha256(string archive, string sums) => Verify(archive, sums, "SHA256", SHA256.Create);
 
     static void Verify(string archive, string sums, string algorithm, Func<HashAlgorithm> createHasher) {
         string filename = Path.GetFileName(archive);

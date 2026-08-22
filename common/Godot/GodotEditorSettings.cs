@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace DockerGodot;
+namespace Godot;
 
 static class GodotEditorSettings {
     static readonly Regex BlenderSetting = new("^filesystem/import/blender/blender_path = [^\\r\\n]*", RegexOptions.Multiline);
@@ -26,7 +26,7 @@ static class GodotEditorSettings {
     internal static string UpdateContents(string? contents, string setting) {
         if (contents == null) {
             return "[gd_resource type=\"EditorSettings\" format=3]" + Environment.NewLine + Environment.NewLine
-                + "[resource]" + Environment.NewLine + setting + Environment.NewLine;
+                   + "[resource]" + Environment.NewLine + setting + Environment.NewLine;
         }
 
         return BlenderSetting.IsMatch(contents)

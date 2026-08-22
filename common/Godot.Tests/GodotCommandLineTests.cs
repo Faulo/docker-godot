@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using DockerGodot;
+using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;

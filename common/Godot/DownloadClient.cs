@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 
-namespace DockerGodot;
+namespace Godot;
 
 interface IDownloadClient {
     string ReadText(string uri, bool github);
@@ -61,13 +61,8 @@ sealed class DownloadClient : IDownloadClient {
     }
 
     static HttpClient CreateHttpClient() {
-        var handler = new HttpClientHandler {
-            AllowAutoRedirect = true,
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-        };
-        return new HttpClient(handler) {
-            Timeout = TimeSpan.FromMinutes(2)
-        };
+        var handler = new HttpClientHandler { AllowAutoRedirect = true, AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+        return new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(2) };
     }
 
     static HttpRequestMessage CreateRequest(string uri, bool github) {
@@ -91,6 +86,7 @@ sealed class DownloadClient : IDownloadClient {
                     if (operation == "download") {
                         Console.Out.WriteLine("docker-godot: download interrupted; resuming attempt " + (attempt + 1) + " of " + MAX_ATTEMPTS);
                     }
+
                     Thread.Sleep(TimeSpan.FromSeconds(attempt * 2));
                 }
             }

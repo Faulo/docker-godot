@@ -1,4 +1,4 @@
-using DockerGodot;
+using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
@@ -22,7 +22,5 @@ public sealed class PlatformInfoTests {
         Assert.That(platform.BlenderArchive("4.2.1"), Is.EqualTo("blender-4.2.1-windows-x64.zip"));
     }
 
-    static PlatformInfo CreatePlatform(bool windows) {
-        return new PlatformInfo(windows, "godot", "templates", "blender", "state", "data", "settings");
-    }
+    static PlatformInfo CreatePlatform(bool windows) => new(windows, "godot", "templates", "blender", "state", "data", "settings");
 }

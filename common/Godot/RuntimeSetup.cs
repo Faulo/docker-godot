@@ -6,14 +6,14 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 
-namespace DockerGodot;
+namespace Godot;
 
 sealed class RuntimeSetup {
     static readonly TimeSpan LockTimeout = TimeSpan.FromHours(2);
+    readonly IDownloadClient _downloadClient;
 
     readonly PlatformInfo _platform;
     readonly IReleaseResolver _releaseResolver;
-    readonly IDownloadClient _downloadClient;
 
     public RuntimeSetup(PlatformInfo platform, IReleaseResolver releaseResolver, IDownloadClient downloadClient) {
         _platform = platform;
@@ -44,6 +44,7 @@ sealed class RuntimeSetup {
             using (AcquireLock(_platform.templateRoot)) {
                 godot = InstallGodot(godotSelector);
             }
+
             WriteGodotCache(godotSelector, godot);
         }
 
@@ -71,6 +72,7 @@ sealed class RuntimeSetup {
             using (AcquireLock(_platform.blenderRoot)) {
                 blender = InstallBlender(selector);
             }
+
             WriteBlenderCache(selector, blender);
         }
 
@@ -116,9 +118,11 @@ sealed class RuntimeSetup {
             if (!File.Exists(unpackedExecutable)) {
                 throw new InvalidDataException("Godot archive has an unexpected layout");
             }
+
             if (!_platform.isWindows) {
                 ProcessRunner.Run("chmod", new[] { "+x", unpackedExecutable }, true);
             }
+
             Directory.Move(unpacked, installDirectory);
         } finally {
             DeleteDirectory(temporary);
@@ -143,6 +147,7 @@ sealed class RuntimeSetup {
             if (!Directory.Exists(templates)) {
                 throw new InvalidDataException("Godot template archive has an unexpected layout");
             }
+
             Directory.Move(templates, templateDirectory);
         } finally {
             DeleteDirectory(temporary);
@@ -178,12 +183,14 @@ sealed class RuntimeSetup {
                 if (source == null || !File.Exists(Path.Combine(source, _platform.blenderExecutable))) {
                     throw new InvalidDataException("Blender archive has an unexpected layout");
                 }
+
                 Directory.Move(source, installDirectory);
             } else {
                 ProcessRunner.Run("tar", new[] { "-xJf", archive, "-C", unpacked, "--strip-components=1" }, true);
                 if (!File.Exists(Path.Combine(unpacked, _platform.blenderExecutable))) {
                     throw new InvalidDataException("Blender archive has an unexpected layout");
                 }
+
                 Directory.Move(unpacked, installDirectory);
             }
         } finally {
@@ -193,15 +200,13 @@ sealed class RuntimeSetup {
         return executable;
     }
 
-    static VersionSelector RequireSelector(string name) {
-        return VersionSelector.Parse(name, Environment.GetEnvironmentVariable(name) ?? string.Empty);
-    }
+    static VersionSelector RequireSelector(string name) => VersionSelector.Parse(name, Environment.GetEnvironmentVariable(name) ?? string.Empty);
 
     internal static bool CanUseCache(VersionSelector selector, string[] cached, int pathCount) {
         return selector.ComponentCount() == 3
-            && cached.Length == pathCount + 1
-            && cached[0] == selector.ToString()
-            && cached.Skip(1).All(File.Exists);
+               && cached.Length == pathCount + 1
+               && cached[0] == selector.ToString()
+               && cached.Skip(1).All(File.Exists);
     }
 
     static FileStream AcquireLock(string root) {
@@ -279,11 +284,7 @@ sealed class RuntimeSetup {
         File.Move(temporary, ready, true);
     }
 
-    static string[] ReadLinesIfPresent(string path) {
-        return File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>();
-    }
+    static string[] ReadLinesIfPresent(string path) => File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>();
 
-    static void Log(string message) {
-        Console.Out.WriteLine("docker-godot: " + message);
-    }
+    static void Log(string message) => Console.Out.WriteLine("docker-godot: " + message);
 }

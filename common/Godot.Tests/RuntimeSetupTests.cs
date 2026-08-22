@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using DockerGodot;
+using Godot;
 using NUnit.Framework;
 
 namespace Godot.Tests;
@@ -64,22 +64,14 @@ public sealed class RuntimeSetupTests {
     }
 
     sealed class UnusedReleaseResolver : IReleaseResolver {
-        public GodotRelease ResolveGodot(VersionSelector selector) {
-            throw new NotSupportedException();
-        }
+        public GodotRelease ResolveGodot(VersionSelector selector) => throw new NotSupportedException();
 
-        public BlenderRelease ResolveBlender(VersionSelector selector, PlatformInfo platform) {
-            throw new NotSupportedException();
-        }
+        public BlenderRelease ResolveBlender(VersionSelector selector, PlatformInfo platform) => throw new NotSupportedException();
     }
 
     sealed class UnusedDownloadClient : IDownloadClient {
-        public string ReadText(string uri, bool github) {
-            throw new NotSupportedException();
-        }
+        public string ReadText(string uri, bool github) => throw new NotSupportedException();
 
-        public void Save(string uri, string destination) {
-            throw new NotSupportedException();
-        }
+        public void Save(string uri, string destination) => throw new NotSupportedException();
     }
 }
