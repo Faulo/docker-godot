@@ -1,6 +1,7 @@
 ARG OS_BASE=ltsc2019
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2019 AS build
+# Keep the SDK stage small enough for Hyper-V-isolated CI runners.
+FROM mcr.microsoft.com/dotnet/sdk:9.0-nanoserver-1809 AS build
 
 WORKDIR C:/source
 
