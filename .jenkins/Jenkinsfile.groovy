@@ -66,7 +66,7 @@ pipeline {
                     label "$HOST"
                 }
                 stages {
-                    stage("$HOST: Godot v$GODOT_VERSION") {
+                    stage('Empty Project Import') {
                         steps {
                             script {
                                 withEnvFile {
