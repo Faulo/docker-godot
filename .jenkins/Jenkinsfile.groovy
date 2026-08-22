@@ -11,27 +11,52 @@ def candidateImage() {
 }
 
 def testEmptyProjectImport() {
+    dir('empty-project') {
+        deleteDir()
+        catchError(
+            message: 'Empty project import test failed',
+            stageResult: 'FAILURE',
+            buildResult: 'FAILURE'
+        ) {
+            try {
+                timeout(time: 10, unit: 'SECONDS') {
+                    def exitCode = execStatus 'godot --headless --verbose --quit --editor --import'
+                    assertValue(exitCode == 0, false, 'Import on an empty project must not return success')
+                }
+            } catch (FlowInterruptedException ignored) {
+                error 'Import on an empty project timed out'
+            }
+        }
+    }
+}
+
+def testProjectImportAndWindowsExport() {
+    def projectDirectory = 'test-files/empty-project'
+
+    dir(projectDirectory) {
+        dir('.godot') {
+            deleteDir()
+        }
+        dir('build') {
+            deleteDir()
+            writeFile file: '.gdignore', text: ''
+        }
+
+        def importExitCode = execStatus 'godot --headless --verbose --quit --editor --import'
+        assertValue(importExitCode, 0, 'Project import must succeed')
+
+        def exportExitCode = execStatus 'godot --headless --verbose --export-release "Windows Desktop" build/empty-project.exe'
+        assertValue(exportExitCode, 0, 'Windows export must succeed')
+        assertValue(fileExists('build/empty-project.exe'), true, 'Windows export executable must exist')
+    }
+}
+
+def testImage() {
     docker.image(candidateImage()).inside() {
         def setupExitCode = execStatus 'godot --version'
         assertValue(setupExitCode, 0, 'Godot setup must succeed')
-
-        dir('empty-project') {
-            deleteDir()
-            catchError(
-                message: 'Empty project import test failed',
-                stageResult: 'FAILURE',
-                buildResult: 'FAILURE'
-            ) {
-                try {
-                    timeout(time: 10, unit: 'SECONDS') {
-                        def exitCode = execStatus 'godot --headless --verbose --quit --editor --import'
-                        assertValue(exitCode == 0, false, 'Import on an empty project must not return success')
-                    }
-                } catch (FlowInterruptedException ignored) {
-                    error 'Import on an empty project timed out'
-                }
-            }
-        }
+        testEmptyProjectImport()
+        testProjectImportAndWindowsExport()
     }
 }
 
@@ -72,7 +97,7 @@ stage('Integration Tests') {
                             ]) {
                                 withEnvFile {
                                     echo "Testing ${candidateImage()} with Godot ${godotVersion} on ${host}"
-                                    testEmptyProjectImport()
+                                    testImage()
                                 }
                             }
                         }
