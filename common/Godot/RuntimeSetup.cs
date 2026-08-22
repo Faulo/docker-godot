@@ -106,7 +106,7 @@ sealed class RuntimeSetup {
             string filename = _platform.GodotArchive(release.tag);
             string archive = Path.Combine(temporary, filename);
             string sums = Path.Combine(temporary, "SHA512-SUMS.txt");
-            string baseUrl = "https://github.com/godotengine/godot-builds/releases/download/" + release.tag;
+            string baseUrl = "https://github.com/godotengine/godot/releases/download/" + release.tag;
             _downloadClient.Save(baseUrl + "/" + filename, archive);
             _downloadClient.Save(baseUrl + "/SHA512-SUMS.txt", sums);
             ChecksumVerifier.VerifySha512(archive, sums);
@@ -133,7 +133,7 @@ sealed class RuntimeSetup {
             string filename = "Godot_v" + release.tag + "_export_templates.tpz";
             string archive = Path.Combine(temporary, filename);
             string sums = Path.Combine(temporary, "SHA512-SUMS.txt");
-            string baseUrl = "https://github.com/godotengine/godot-builds/releases/download/" + release.tag;
+            string baseUrl = "https://github.com/godotengine/godot/releases/download/" + release.tag;
             _downloadClient.Save(baseUrl + "/" + filename, archive);
             _downloadClient.Save(baseUrl + "/SHA512-SUMS.txt", sums);
             ChecksumVerifier.VerifySha512(archive, sums);

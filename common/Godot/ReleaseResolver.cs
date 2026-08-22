@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace DockerGodot;
@@ -14,10 +13,8 @@ interface IReleaseResolver {
 }
 
 sealed class ReleaseResolver : IReleaseResolver {
-    const int MAX_GITHUB_PAGES = 10;
-    const int GITHUB_PAGE_SIZE = 100;
-
     static readonly Regex GodotStableTag = new("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?-stable$");
+    static readonly Regex GodotArchiveStableTag = new("(?<![0-9.])\\d+\\.\\d+(?:\\.\\d+)?-stable(?![A-Za-z0-9.-])");
     static readonly Regex BlenderSeries = new("Blender(\\d+)\\.(\\d+)/");
 
     readonly IDownloadClient _downloadClient;
@@ -27,16 +24,8 @@ sealed class ReleaseResolver : IReleaseResolver {
     }
 
     public GodotRelease ResolveGodot(VersionSelector selector) {
-        var candidates = new List<GodotRelease>();
-        for (int page = 1; page <= MAX_GITHUB_PAGES; page++) {
-            string uri = "https://api.github.com/repos/godotengine/godot-builds/releases?per_page=" + GITHUB_PAGE_SIZE + "&page=" + page;
-            string response = _downloadClient.ReadText(uri, true);
-            var tags = ParseGodotTags(response);
-            candidates.AddRange(ParseGodotReleases(tags, selector));
-            if (candidates.Count > 0 || tags.Count < GITHUB_PAGE_SIZE) {
-                break;
-            }
-        }
+        string response = _downloadClient.ReadText("https://godotengine.org/download/archive/", false);
+        var candidates = ParseGodotReleases(ParseGodotArchiveTags(response), selector);
 
         if (candidates.Count == 0) {
             throw new InvalidOperationException("no stable Godot release matches " + EnvironmentVariableNames.GODOT_VERSION + "=" + selector);
@@ -60,20 +49,11 @@ sealed class ReleaseResolver : IReleaseResolver {
         return candidates.MaxBy(candidate => candidate.version)!;
     }
 
-    internal static IReadOnlyList<string> ParseGodotTags(string response) {
-        using var document = JsonDocument.Parse(response);
-        if (document.RootElement.ValueKind != JsonValueKind.Array) {
-            throw new InvalidOperationException("GitHub release response is not an array");
-        }
-
-        var tags = new List<string>();
-        foreach (var release in document.RootElement.EnumerateArray()) {
-            if (release.TryGetProperty("tag_name", out var tag) && tag.ValueKind == JsonValueKind.String) {
-                tags.Add(tag.GetString()!);
-            }
-        }
-
-        return tags;
+    internal static IReadOnlyList<string> ParseGodotArchiveTags(string response) {
+        return GodotArchiveStableTag.Matches(response)
+            .Select(match => match.Value)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
     }
 
     internal static IReadOnlyList<GodotRelease> ParseGodotReleases(IEnumerable<string> tags, VersionSelector selector) {

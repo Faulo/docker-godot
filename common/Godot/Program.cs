@@ -10,10 +10,8 @@ static class Program {
                 return setup.IsHealthy() ? 0 : 1;
             }
 
+            GodotCommandLine.ValidateImportProject(arguments, Environment.CurrentDirectory);
             string executable = setup.PrepareGodot();
-            if (PlatformInfo.current.isWindows) {
-                GodotCommandLine.ValidateImportProject(arguments, Environment.CurrentDirectory);
-            }
             return ProcessRunner.Run(executable, arguments, false);
         } catch (Exception exception) {
             Console.Error.WriteLine("docker-godot: " + exception.Message);

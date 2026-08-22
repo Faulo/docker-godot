@@ -46,8 +46,8 @@ The launcher uses these environment variables:
 - `GODOT_VERSION` is required by `godot` and selects the standard Godot editor and export templates.
 - `BLENDER_VERSION` is optional; when set, Blender is installed before Godot starts.
 
-On Windows, the launcher rejects `--import` when the selected working directory
-does not contain a `project.godot` file. This matches the command's project
+The launcher rejects `--import` when the selected working directory does not
+contain a `project.godot` file. This matches the command's project
 requirement and avoids a native Godot process that otherwise remains running
 after reporting the missing project. An explicit `--path` selects the directory
 that is checked.
@@ -128,7 +128,7 @@ compute API.
 The launcher unit tests run directly on .NET and do not require Docker:
 
 ```text
-dotnet test DockerGodot.sln --configuration Release
+dotnet test docker-godot.sln --configuration Release
 ```
 
 The tests cover version selection, release-list parsing, checksum verification,

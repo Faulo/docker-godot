@@ -7,18 +7,16 @@ namespace Godot.Tests;
 
 public sealed class ReleaseResolverTests {
     [Test]
-    public void ParsesGodotTagsFromJsonProperties() {
-        const string json = """
-            [
-              { "name": "ignored", "tag_name": "4.3-stable" },
-              { "tag_name": "4.3.2-stable" },
-              { "tag_name": "4.4-rc1" }
-            ]
+    public void ParsesDistinctStableGodotTagsFromArchivePage() {
+        const string html = """
+            <a href="/download/archive/4.3-stable/">4.3-stable</a>
+            <a href="/download/archive/4.3.2-stable/">4.3.2-stable</a>
+            <a href="/download/archive/4.4-rc1/">4.4-rc1</a>
             """;
 
-        var tags = ReleaseResolver.ParseGodotTags(json);
+        var tags = ReleaseResolver.ParseGodotArchiveTags(html);
 
-        Assert.That(tags, Is.EqualTo(new[] { "4.3-stable", "4.3.2-stable", "4.4-rc1" }));
+        Assert.That(tags, Is.EqualTo(new[] { "4.3-stable", "4.3.2-stable" }));
     }
 
     [Test]
