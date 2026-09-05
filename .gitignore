@@ -3,7 +3,7 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
-workspace.xml
 
-common/**/bin/
-common/**/obj/
+# == .NET ==
+**/bin/
+**/obj/
