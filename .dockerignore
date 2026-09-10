@@ -1,9 +1,16 @@
-**
-!common/
-!common/**
-common/**/bin/
-common/**/obj/
-!linux/
-!linux/**
-!windows/
-!windows/**
+# == Windows ==
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# == .NET ==
+**/bin/
+**/obj/
+
+# == DevOps ==
+.git/
+.github/
+.jenkins/
+.idea/
+.settings/
