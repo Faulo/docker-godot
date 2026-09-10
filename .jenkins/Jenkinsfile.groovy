@@ -52,12 +52,18 @@ def testProjectImportAndWindowsExport() {
 
 def testLatestPowerShell() {
     writeFile file: 'test-powershell.ps1', text: '''
-$releases = Invoke-RestMethod 'https://api.github.com/repos/PowerShell/PowerShell/releases?per_page=100'
-$latestVersion = $releases |
-    Where-Object { -not $_.draft -and -not $_.prerelease -and $_.tag_name -match '^v7[.][0-9]+[.][0-9]+$' } |
-    ForEach-Object { [version]$_.tag_name.Substring(1) } |
-    Sort-Object |
-    Select-Object -Last 1
+$latestUrl = curl.exe -fsSL -o NUL -w '%{url_effective}' 'https://github.com/PowerShell/PowerShell/releases/latest'
+if ($LASTEXITCODE -ne 0) {
+    Write-Error 'Failed to resolve the latest stable PowerShell release'
+    exit 1
+}
+
+$latestTag = ([uri]$latestUrl).Segments[-1]
+$latestVersion = [version]$latestTag.TrimStart('v')
+if ($latestVersion.Major -ne 7) {
+    Write-Error "Expected the latest stable PowerShell release to be in major line 7, got $latestVersion"
+    exit 1
+}
 
 if ($PSVersionTable.PSVersion -ne $latestVersion) {
     Write-Error "Expected PowerShell $latestVersion, got $($PSVersionTable.PSVersion)"
