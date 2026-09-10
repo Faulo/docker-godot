@@ -50,10 +50,32 @@ def testProjectImportAndWindowsExport() {
     }
 }
 
+def testLatestPowerShell() {
+    writeFile file: 'test-powershell.ps1', text: '''
+$releases = Invoke-RestMethod 'https://api.github.com/repos/PowerShell/PowerShell/releases?per_page=100'
+$latestVersion = $releases |
+    Where-Object { -not $_.draft -and -not $_.prerelease -and $_.tag_name -match '^v7[.][0-9]+[.][0-9]+$' } |
+    ForEach-Object { [version]$_.tag_name.Substring(1) } |
+    Sort-Object |
+    Select-Object -Last 1
+
+if ($PSVersionTable.PSVersion -ne $latestVersion) {
+    Write-Error "Expected PowerShell $latestVersion, got $($PSVersionTable.PSVersion)"
+    exit 1
+}
+'''
+
+    def exitCode = execStatus 'pwsh -NoLogo -NoProfile -File test-powershell.ps1'
+    assertValue(exitCode, 0, 'PowerShell must be the latest stable release in major line 7')
+}
+
 def testImage() {
     docker.image(candidateImage()).inside() {
         def setupExitCode = execStatus 'godot --version'
         assertValue(setupExitCode, 0, 'Godot setup must succeed')
+        if (!isUnix()) {
+            testLatestPowerShell()
+        }
         testEmptyProjectImport()
         testProjectImportAndWindowsExport()
     }
