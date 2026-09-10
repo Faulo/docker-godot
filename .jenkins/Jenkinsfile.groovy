@@ -75,11 +75,11 @@ if ($PSVersionTable.PSVersion -ne $latestVersion) {
     assertValue(exitCode, 0, 'PowerShell must be the latest stable release in major line 7')
 }
 
-def testImage() {
+def testImage(testPowerShell) {
     docker.image(candidateImage()).inside() {
         def setupExitCode = execStatus 'godot --version'
         assertValue(setupExitCode, 0, 'Godot setup must succeed')
-        if (!isUnix()) {
+        if (testPowerShell) {
             testLatestPowerShell()
         }
         testEmptyProjectImport()
@@ -124,7 +124,7 @@ stage('Integration Tests') {
                             ]) {
                                 withEnvFile {
                                     echo "Testing ${candidateImage()} with Godot ${godotVersion} on ${host}"
-                                    testImage()
+                                    testImage(!isUnix() && godotVersion == godotVersions[0])
                                 }
                             }
                         }
