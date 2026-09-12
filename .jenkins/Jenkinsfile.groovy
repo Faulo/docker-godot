@@ -75,12 +75,21 @@ if ($PSVersionTable.PSVersion -ne $latestVersion) {
     assertValue(exitCode, 0, 'PowerShell must be the latest stable release in major line 7')
 }
 
-def testImage(testPowerShell) {
+def testLinuxRuntime() {
+    def exitCode = execStatus 'grep -qx "VERSION_CODENAME=trixie" /etc/os-release'
+    assertValue(exitCode, 0, 'Linux runtime must use Debian trixie')
+}
+
+def testImage(testRuntime) {
     docker.image(candidateImage()).inside() {
         def setupExitCode = execStatus 'godot --version'
         assertValue(setupExitCode, 0, 'Godot setup must succeed')
-        if (testPowerShell) {
-            testLatestPowerShell()
+        if (testRuntime) {
+            if (isUnix()) {
+                testLinuxRuntime()
+            } else {
+                testLatestPowerShell()
+            }
         }
         testEmptyProjectImport()
         testProjectImportAndWindowsExport()
@@ -124,7 +133,7 @@ stage('Integration Tests') {
                             ]) {
                                 withEnvFile {
                                     echo "Testing ${candidateImage()} with Godot ${godotVersion} on ${host}"
-                                    testImage(!isUnix() && godotVersion == godotVersions[0])
+                                    testImage(godotVersion == godotVersions[0])
                                 }
                             }
                         }
