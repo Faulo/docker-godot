@@ -1,139 +1,130 @@
-def assertValue(actual, expected, description) {
-    if (actual != expected) {
-        error "${description}: expected '${expected}', got '${actual}'"
+pipeline {
+    agent none
+
+    options {
+        disableConcurrentBuilds()
+        disableResume()
+        disableRestartFromStage()
     }
-}
 
-def candidateImage() {
-    return "$DOCKER_NAMESPACE/$DOCKER_IMAGE"
-}
+    stages {
+        stage('Integration Tests') {
+            steps {
+                script {
+                    def properties = readTrusted('.jenkins/pesterProject.properties')
+                    def pesterConfig = readProperties text: properties
 
-def testEmptyProjectImport() {
-    dir('empty-project') {
-        deleteDir()
-        catchError(
-            message: 'Empty project import test failed',
-            stageResult: 'FAILURE',
-            buildResult: 'FAILURE'
-        ) {
-            try {
-                timeout(time: 10, unit: 'SECONDS') {
-                    def exitCode = execStatus 'godot --headless --verbose --quit --editor --import'
-                    assertValue(exitCode == 0, false, 'Import on an empty project must not return success')
+                    pesterProject(pesterConfig, 6)
                 }
-            } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException ignored) {
-                error 'Import on an empty project timed out'
             }
         }
     }
 }
 
-def testProjectImportAndWindowsExport() {
-    def projectDirectory = 'test-files/empty-project'
+def requiredProperty(config, name) {
+    def value = config[name]?.trim()
+    if (!value) {
+        error "Missing required property '${name}' in .jenkins/pesterProject.properties"
+    }
+    return value
+}
 
-    dir(projectDirectory) {
-        dir('.godot') {
-            deleteDir()
+def commaSeparated(value) {
+    return value
+        ? value.split(' ').collect { it.trim() }.findAll { it }
+        : []
+}
+
+def parseCredentialPairs(value, description, bindingFactory) {
+    return commaSeparated(value).collect { entry ->
+        def parts = entry.split('\\|', 2)
+        if (parts.size() != 2 || !parts[0].trim() || !parts[1].trim()) {
+            error "Invalid ${description} credential binding '${entry}'; expected variable|credential-id"
         }
-        dir('build') {
-            deleteDir()
-            writeFile file: '.gdignore', text: ''
-        }
-
-        def importExitCode = execStatus 'godot --headless --verbose --quit --editor --import'
-        def legacyWindowsExitCode = !isUnix() && GODOT_VERSION in ['4.0', '4.1', '4.2']
-        assertValue(importExitCode, legacyWindowsExitCode ? 1 : 0, 'Project import must return the platform-specific success code')
-
-        def exportExitCode = execStatus 'godot --headless --verbose --export-release "Windows Desktop" build/empty-project.exe'
-        assertValue(exportExitCode, 0, 'Windows export must succeed')
-        assertValue(fileExists('build/empty-project.exe'), true, 'Windows export executable must exist')
+        return bindingFactory(parts[0].trim(), parts[1].trim())
     }
 }
 
-def testLatestPowerShell() {
-    writeFile file: 'test-powershell.ps1', text: '''
-$latestUrl = curl.exe -fsSL -o NUL -w '%{url_effective}' 'https://github.com/PowerShell/PowerShell/releases/latest'
-if ($LASTEXITCODE -ne 0) {
-    Write-Error 'Failed to resolve the latest stable PowerShell release'
-    exit 1
-}
-
-$latestTag = ([uri]$latestUrl).Segments[-1]
-$latestVersion = [version]$latestTag.TrimStart('v')
-if ($latestVersion.Major -ne 7) {
-    Write-Error "Expected the latest stable PowerShell release to be in major line 7, got $latestVersion"
-    exit 1
-}
-
-if ($PSVersionTable.PSVersion -ne $latestVersion) {
-    Write-Error "Expected PowerShell $latestVersion, got $($PSVersionTable.PSVersion)"
-    exit 1
-}
-'''
-
-    def exitCode = execStatus 'pwsh -NoLogo -NoProfile -File test-powershell.ps1'
-    assertValue(exitCode, 0, 'PowerShell must be the latest stable release in major line 7')
-}
-
-def testLinuxRuntime() {
-    def exitCode = execStatus 'grep -qx "VERSION_CODENAME=trixie" /etc/os-release'
-    assertValue(exitCode, 0, 'Linux runtime must use Debian trixie')
-}
-
-def testImage(testRuntime) {
-    docker.image(candidateImage()).inside() {
-        def setupExitCode = execStatus 'godot --version'
-        assertValue(setupExitCode, 0, 'Godot setup must succeed')
-        if (testRuntime) {
-            if (isUnix()) {
-                testLinuxRuntime()
-            } else {
-                testLatestPowerShell()
-            }
+def credentialBindings(config) {
+    def bindings = []
+    bindings.addAll(parseCredentialPairs(
+        config.usernamePasswordCredentials,
+        'username/password',
+        { variable, id ->
+            usernamePassword(
+                credentialsId: id,
+                usernameVariable: "${variable}_USR",
+                passwordVariable: "${variable}_PSW"
+            )
         }
-        testEmptyProjectImport()
-        testProjectImportAndWindowsExport()
+    ))
+    bindings.addAll(parseCredentialPairs(
+        config.stringCredentials,
+        'string',
+        { variable, id -> string(credentialsId: id, variable: variable) }
+    ))
+    return bindings
+}
+
+def withOptionalCredentials(bindings, Closure body) {
+    if (bindings) {
+        withCredentials(bindings, body)
+    } else {
+        body()
     }
 }
 
-properties([
-    parameters([
-        choice(
-            name: 'DOCKER_NAMESPACE',
-            choices: ['faulo', 'tmp'],
-            description: 'Docker image namespace to test'
-        )
-    ]),
-    disableConcurrentBuilds(),
-    disableResume()
-])
+def pesterProject(config, pesterVersion) {
+    def targets = commaSeparated(requiredProperty(config, 'targets'))
+    def variants = commaSeparated(requiredProperty(config, 'variants'))
+    def timeoutMinutes = (config.timeoutMinutes?.trim() ?: '60') as Integer
+    def bindings = credentialBindings(config)
 
-def hosts = ['Dende', 'Garl']
-def godotVersions = ['4.0', '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7']
-def dockerNamespace = params.DOCKER_NAMESPACE ?: 'faulo'
+    if (timeoutMinutes <= 0) {
+        error 'timeoutMinutes must be a positive integer'
+    }
 
-stage('Integration Tests') {
-    for (def host in hosts) {
-        stage("Host: ${host}") {
-            node(host) {
-                deleteDir()
+    for (def target in targets) {
+        stage("Host: ${target}") {
+            node(target) {
+                def os = isWindows() ? 'windows' : 'linux'
+
                 checkout scm
 
-                for (def godotVersion in godotVersions) {
-                    stage("Godot v${godotVersion}") {
-                        catchError(
-                            message: "Godot ${godotVersion} integration test failed on ${host}",
-                            stageResult: 'FAILURE',
-                            buildResult: 'FAILURE',
-                            catchInterruptions: false
-                        ) {
-                            withEnv([
-                                "DOCKER_NAMESPACE=${dockerNamespace}",
-                                "GODOT_VERSION=${godotVersion}"
-                            ]) {
-                                withEnvFile {
-                                    echo "Testing ${candidateImage()} with Godot ${godotVersion} on ${host}"
-                                    testImage(godotVersion == godotVersions[0])
+                dir('.reports') {
+                    deleteDir()
+                }
+
+                withEnvFile {
+                    exec "pwsh -NoLogo -NoProfile -NonInteractive -File .jenkins/Install-Pester.ps1 -MajorVersion ${pesterVersion}"
+
+                    for (def variant in variants) {
+                        def safeTarget = target.replaceAll('[^A-Za-z0-9_.-]+', '-')
+                        def safeVariant = variant.replaceAll('[^A-Za-z0-9_.-]+', '-')
+                        def resultsPath = ".reports/pester-${safeTarget}-${os}-${safeVariant}.xml"
+
+                        def image = "${env.DOCKER_NAMESPACE}/${env.DOCKER_IMAGE}:${variant}"
+
+                        withOptionalCredentials(bindings) {
+                            stage(image) {
+                                catchError(
+                                    message: "Pester integration tests failed for ${image} on ${target}",
+                                    stageResult: 'FAILURE',
+                                    buildResult: 'FAILURE',
+                                    catchInterruptions: false
+                                ) {
+                                    timeout(time: timeoutMinutes, unit: 'MINUTES') {
+                                        echo "Testing ${image} on ${target}"
+                                        try {
+                                            exec "pwsh -NoLogo -NoProfile -NonInteractive -File .jenkins/Invoke-IntegrationTests.ps1 -Variant ${variant} -Pull -TestsPath tests -ResultsPath ${resultsPath}"
+                                        } finally {
+                                            junit(
+                                                testResults: resultsPath,
+                                                allowEmptyResults: false,
+                                                skipMarkingBuildUnstable: false
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

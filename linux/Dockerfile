@@ -1,25 +1,25 @@
-ARG OS_BASE=bookworm-slim
-ARG DEBIAN_FRONTEND=noninteractive
-
 FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim AS build
 
-WORKDIR /source
+WORKDIR /solution
 
-COPY common/Godot/ .
+COPY . .
 
-RUN dotnet publish Godot.csproj \
+RUN dotnet publish \
         --configuration Release \
         --runtime linux-x64 \
         --self-contained true \
         --property:PublishSingleFile=true \
-        --output /out
+        --property:UseAppHost=true \
+        --property:DebugType=None
 
-FROM debian:${OS_BASE}
+FROM debian:trixie-slim
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 USER root
 WORKDIR /godot
 
-COPY --from=build --chmod=755 /out/godot /godot/godot
+COPY --from=build --chmod=755 /solution/common/Godot/bin/Release/net9.0/linux-x64/publish/ /godot/
 
 ENV PATH="/godot:${PATH}"
 ENV LANG=C.UTF-8
@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libfontconfig1 \
         libgl1 \
         libice6 \
+        libicu76 \
         libsm6 \
         libvulkan1 \
         libx11-6 \

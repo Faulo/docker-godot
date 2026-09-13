@@ -10,9 +10,11 @@ Both image variants provide:
 - Blender selected by `BLENDER_VERSION`, when configured.
 - A `godot` launcher that installs and starts the selected versions and reports readiness to the health check.
 
-The Windows image also provides PowerShell 7 as `pwsh`, allowing CI scripts to
+The Windows image also provides the latest stable PowerShell 7 release as `pwsh`, allowing CI scripts to
 use modern native-command output and error handling instead of Windows
 PowerShell 5.1 behavior.
+
+The Linux runtime uses the `debian:trixie-slim` base image.
 
 The image supports standard Godot builds. Godot .NET/Mono builds and a selector for choosing between standard and .NET builds will be added separately.
 
@@ -142,13 +144,12 @@ docker --context linux build --pull --tag tmp/godot:latest --file linux/Dockerfi
 docker --context windows build --pull --tag tmp/godot:latest --file windows/Dockerfile .
 ```
 
-Only images under the disposable `tmp/` namespace are used by the batch scripts. The platform-specific Explorer entry points are:
+Integration tests use Pester 6 and only target images in the selected namespace. Install Pester and run the complete Godot 4.0 through 4.7 matrix against each candidate image:
 
 ```text
-docker-build-linux.bat
-docker-build-windows.bat
-docker-test-linux.bat
-docker-test-windows.bat
+pwsh -NoLogo -NoProfile -File .jenkins/Install-Pester.ps1 -MajorVersion 6
+pwsh -NoLogo -NoProfile -File .jenkins/Invoke-IntegrationTests.ps1 -Namespace tmp -Context linux
+pwsh -NoLogo -NoProfile -File .jenkins/Invoke-IntegrationTests.ps1 -Namespace tmp -Context windows
 ```
 
-The test configuration in `.env` installs the latest stable Godot 4 and Blender 4 releases into named volumes, then runs `godot --version`.
+The test configuration in `.env` supplies the persistent Godot, export-template, and Blender volumes for each platform. The integration suite verifies the platform runtime, installs every currently supported stable Godot series, rejects project-only commands outside a project, imports the fixture project, and exports its Windows executable.
