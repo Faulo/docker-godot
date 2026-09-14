@@ -39,22 +39,21 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
+$requiredModulesPath = Join-Path $PSScriptRoot 'RequiredModules.psd1'
+Install-PSResource `
+    -RequiredResourceFile $requiredModulesPath `
+    -Scope CurrentUser `
+    -TrustRepository `
+    -AcceptLicense `
+    -Quiet `
+    -WarningAction SilentlyContinue
+
+Import-Module Pester -ErrorAction Stop
+Import-Module pwsh-dotenv -ErrorAction Stop
 . (Join-Path $PSScriptRoot 'Docker.ps1')
 
 $environmentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../.env'))
-$environment = @{}
-foreach ($line in Get-Content -LiteralPath $environmentPath) {
-    if ($line -match '^\s*(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?<value>.*)\s*$') {
-        $value = $Matches.value.Trim()
-        if ($value.Length -ge 2 -and (
-            ($value.StartsWith('"') -and $value.EndsWith('"')) -or
-            ($value.StartsWith("'") -and $value.EndsWith("'"))
-        )) {
-            $value = $value.Substring(1, $value.Length - 2)
-        }
-        $environment[$Matches.name] = $value
-    }
-}
+$environment = Read-Dotenv -Path $environmentPath
 
 if ([string]::IsNullOrWhiteSpace($Namespace)) {
     $Namespace = $environment.DOCKER_NAMESPACE
@@ -68,14 +67,6 @@ if ([string]::IsNullOrWhiteSpace($Namespace)) {
 if ([string]::IsNullOrWhiteSpace($Name)) {
     throw "Docker image name is missing; pass -Name or set DOCKER_IMAGE in $environmentPath"
 }
-
-$installedPester = Get-Module -ListAvailable -Name Pester |
-    Sort-Object Version -Descending |
-    Select-Object -First 1
-if ($null -eq $installedPester) {
-    throw 'Pester is not installed'
-}
-Import-Module $installedPester.Path -ErrorAction Stop
 
 $resolvedResultsPath = [IO.Path]::GetFullPath(
     $ResultsPath,

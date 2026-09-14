@@ -18,6 +18,7 @@ param(
     [string] $Os,
 
     [Parameter(Mandatory)]
+    [AllowEmptyCollection()]
     [string[]] $DockerRunArguments
 )
 

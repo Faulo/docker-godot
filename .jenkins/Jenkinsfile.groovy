@@ -14,7 +14,7 @@ pipeline {
                     def properties = readTrusted('.jenkins/pesterProject.properties')
                     def pesterConfig = readProperties text: properties
 
-                    pesterProject(pesterConfig, 6)
+                    pesterProject(pesterConfig)
                 }
             }
         }
@@ -74,7 +74,7 @@ def withOptionalCredentials(bindings, Closure body) {
     }
 }
 
-def pesterProject(config, pesterVersion) {
+def pesterProject(config) {
     def targets = commaSeparated(requiredProperty(config, 'targets'))
     def variants = commaSeparated(requiredProperty(config, 'variants'))
     def timeoutMinutes = (config.timeoutMinutes?.trim() ?: '60') as Integer
@@ -96,8 +96,6 @@ def pesterProject(config, pesterVersion) {
                 }
 
                 withEnvFile {
-                    exec "pwsh -NoLogo -NoProfile -NonInteractive -File .jenkins/Install-Pester.ps1 -MajorVersion ${pesterVersion}"
-
                     for (def variant in variants) {
                         def safeTarget = target.replaceAll('[^A-Za-z0-9_.-]+', '-')
                         def safeVariant = variant.replaceAll('[^A-Za-z0-9_.-]+', '-')
