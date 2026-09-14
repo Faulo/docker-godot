@@ -26,27 +26,13 @@ ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
 # Utilities
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        ca-certificates \
-        libasound2 \
-        libdbus-1-3 \
-        libegl1 \
-        libfontconfig1 \
-        libgl1 \
-        libice6 \
-        libicu76 \
-        libsm6 \
-        libvulkan1 \
-        libx11-6 \
-        libxext6 \
-        libxfixes3 \
-        libxi6 \
-        libxkbcommon0 \
-        libxrender1 \
-        libxxf86vm1 \
-        xz-utils && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+COPY linux/godot.packages /tmp/godot.packages
+
+RUN apt-get update \
+ && xargs apt-get install -y --no-install-recommends < /tmp/godot.packages \
+ && rm -f /tmp/godot.packages \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN install -d /godot/binaries /godot/export_templates /blender
 

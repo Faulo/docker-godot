@@ -10,9 +10,11 @@ Both image variants provide:
 - Blender selected by `BLENDER_VERSION`, when configured.
 - A `godot` launcher that installs and starts the selected versions and reports readiness to the health check.
 
-The Windows image also provides the latest stable PowerShell 7 release as `pwsh`, allowing CI scripts to
-use modern native-command output and error handling instead of Windows
-PowerShell 5.1 behavior.
+The Windows image retains the full Windows base needed by game-development
+applications and uses a .NET Framework-compatible Chocolatey release plus a
+package manifest to provide the latest stable PowerShell 7 release as `pwsh`.
+This allows CI scripts to use modern native-command output and error handling
+instead of Windows PowerShell 5.1 behavior.
 
 The Linux runtime uses the `debian:trixie-slim` base image.
 

@@ -29,41 +29,24 @@ COPY --from=build C:/solution/common/Godot/bin/Release/net9.0/win-x64/publish/ C
 RUN $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine'); \
     [Environment]::SetEnvironmentVariable('Path', ('C:\godot;' + $machinePath), 'Machine')
 
-# PowerShell
-ARG POWERSHELL_MAJOR=7
+# Chocolatey packages
+ARG CHOCOLATEY_VERSION=1.4.0
 
-ADD https://api.github.com/repos/PowerShell/PowerShell/releases?per_page=100 C:/powershell-releases.json
+# Chocolatey 2 requires .NET Framework 4.8, which the full LTSC 2019 image
+# cannot add without a reboot. Chocolatey 1 keeps the full Windows DLL surface.
+RUN $env:chocolateyVersion = $env:CHOCOLATEY_VERSION; \
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); \
+    if (-not (Get-Command choco -ErrorAction SilentlyContinue)) { throw 'Chocolatey installation failed' }
 
-RUN $releases = Get-Content C:/powershell-releases.json -Raw | ConvertFrom-Json; \
-    $release = $releases | \
-      Where-Object { -not $_.draft -and -not $_.prerelease -and $_.tag_name -match ('^v' + $env:POWERSHELL_MAJOR + '\.\d+\.\d+$') } | \
-      Sort-Object { [version]$_.tag_name.Substring(1) } | \
-      Select-Object -Last 1; \
-    if (-not $release) { throw ('No stable PowerShell ' + $env:POWERSHELL_MAJOR + ' release found') }; \
-    $powershellVersion = $release.tag_name.Substring(1); \
-    $archiveName = 'PowerShell-' + $powershellVersion + '-win-x64.zip'; \
-    $archive = 'C:/' + $archiveName; \
-    $asset = $release.assets | Where-Object name -eq $archiveName; \
-    $hashesAsset = $release.assets | Where-Object name -eq 'hashes.sha256'; \
-    if (-not $asset -or -not $hashesAsset) { throw ('PowerShell ' + $powershellVersion + ' release assets are incomplete') }; \
-    curl.exe -fsSL $asset.browser_download_url -o $archive; \
-    if ($LASTEXITCODE -ne 0) { throw 'Failed to download PowerShell' }; \
-    curl.exe -fsSL $hashesAsset.browser_download_url -o C:/powershell-hashes; \
-    if ($LASTEXITCODE -ne 0) { throw 'Failed to download PowerShell hashes' }; \
-    $hashLine = Get-Content C:/powershell-hashes | Where-Object { $_ -match ('\*' + [regex]::Escape($archiveName) + '$') }; \
-    if (-not $hashLine) { throw ('No checksum found for ' + $archiveName) }; \
-    $expectedHash = ($hashLine -split '\s+')[0]; \
-    $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash; \
-    if ($actualHash -ne $expectedHash) { throw ('Checksum verification failed for ' + $archiveName) }; \
-    $destination = 'C:/Program Files/PowerShell/7'; \
-    New-Item -ItemType Directory -Force $destination | Out-Null; \
-    Expand-Archive -LiteralPath $archive -DestinationPath $destination; \
-    Remove-Item -LiteralPath $archive,C:/powershell-hashes,C:/powershell-releases.json; \
-    $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine'); \
-    [Environment]::SetEnvironmentVariable('Path', ($destination + ';' + $machinePath), 'Machine'); \
-    $env:Path = $destination + ';' + $env:Path; \
-    pwsh -NoLogo -NoProfile -Command \
-        'if ($PSVersionTable.PSVersion.Major -ne [int]$env:POWERSHELL_MAJOR) { exit 1 }'; \
+COPY windows/godot.nuspec C:/package/godot.nuspec
+
+RUN choco pack C:/package/godot.nuspec --output-directory C:/package --limit-output; \
+    if ($LASTEXITCODE -ne 0) { throw ('choco pack godot failed with exit code {0}' -f $LASTEXITCODE) }; \
+    choco install godot-container --yes --no-progress --limit-output --source 'C:/package;https://community.chocolatey.org/api/v2/'; \
+    if ($LASTEXITCODE -notin 0, 1641, 3010) { throw ('choco install godot-container failed with exit code {0}' -f $LASTEXITCODE) }; \
+    Remove-Item -Recurse -Force C:/package; \
+    $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User'); \
+    pwsh.exe -NoLogo -NoProfile -Command '$PSVersionTable.PSVersion'; \
     if ($LASTEXITCODE -ne 0) { throw 'PowerShell smoke check failed' }
 
 VOLUME ["C:/godot/binaries", "C:/godot/export_templates", "C:/blender"]

@@ -1,0 +1,12 @@
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>godot-container</id>
+    <version>1.0.0</version>
+    <title>Godot container tools</title>
+    <authors>Daniel Schulz</authors>
+    <description>Tools used by the Godot container image.</description>
+    <dependencies>
+      <dependency id="powershell-core" />
+    </dependencies>
+  </metadata>
+</package>

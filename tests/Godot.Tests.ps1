@@ -220,6 +220,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Failed to resolve the latest stable PowerShell
 $latestVersion = [version](([uri]$latestUrl).Segments[-1].TrimStart('v'))
 if ($latestVersion.Major -ne 7) { throw "Latest stable PowerShell is not in major line 7: $latestVersion" }
 if ($PSVersionTable.PSVersion -ne $latestVersion) { throw "Expected PowerShell $latestVersion, got $($PSVersionTable.PSVersion)" }
+$chocolateyVersion = choco --version
+if ($LASTEXITCODE -ne 0) { throw 'Chocolatey is not available' }
+[version] $chocolateyVersion | Out-Null
 '@
             Invoke-Docker -Context $Context -RunArguments $DockerRunArguments -Arguments @(
                 'run', '--rm', $Image,
