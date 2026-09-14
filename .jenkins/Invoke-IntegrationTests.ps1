@@ -53,7 +53,7 @@ Import-Module pwsh-dotenv -ErrorAction Stop
 . (Join-Path $PSScriptRoot 'Docker.ps1')
 
 $environmentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../.env'))
-$environment = Read-Dotenv -Path $environmentPath
+$environment = Read-Dotenv -Path $environmentPath -AllowClobber
 
 if ([string]::IsNullOrWhiteSpace($Namespace)) {
     $Namespace = $environment.DOCKER_NAMESPACE
