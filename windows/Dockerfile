@@ -54,4 +54,4 @@ VOLUME ["C:/godot/binaries", "C:/godot/export_templates", "C:/blender"]
 HEALTHCHECK --interval=30s --timeout=10s --start-period=2h --retries=3 \
     CMD ["godot.exe", "health"]
 
-CMD ["godot.exe"]
+CMD ["godot", "help"]

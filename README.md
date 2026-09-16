@@ -28,6 +28,14 @@ The image is designed for direct one-off use:
 docker run --rm --env GODOT_VERSION=4 faulo/godot:latest godot --version
 ```
 
+The image deliberately has no `ENTRYPOINT`. Its default command is
+`["godot", "help"]`, and an explicit Docker command replaces that default
+completely. This is a compatibility guarantee for the Jenkins Docker Pipeline
+plugin: an unmodified `docker.image(image).inside { ... }` can start its `cat`
+keeper on Linux or `cmd.exe` keeper on Windows and run build steps with
+`docker exec`. When overriding the command for launcher use, invoke `godot`
+explicitly as shown above.
+
 The working directory is `/godot` on Linux and `C:/godot` on Windows. The image-owned `godot` executable lives there, and that directory is prepended to `PATH`.
 
 The `godot` launcher performs the following work before starting the selected Godot executable:
