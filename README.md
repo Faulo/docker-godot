@@ -151,11 +151,13 @@ compute API.
 
 ## Local Build and Test
 
-GitHub uses the fleet caller for `Faulo/workflows-docker@v2`; `docker.json`
+GitHub uses the fleet caller for `Faulo/workflows-docker@v3`; `docker.json`
 selects native Linux amd64 and full Windows LTSC 2019 builds. Publication names
 resolve from the tracked `.env`, independently of the Docker Hub login username.
-Only `faulo/godot:latest` is published. Docker selects the platform from that
-manifest; historical platform/LTSC suffix tags are no longer refreshed.
+The workflow publishes `faulo/godot:latest` as a combined platform manifest, plus
+`latest-linux-amd64` and `latest-windows-ltsc2019` to select a particular target.
+Configuration schema version 2 uses each target's `tag` as that suffix.
+Historical tags with other suffixes are no longer refreshed.
 The shared workflow verifies digests and platform metadata and deletes its
 run-specific staging tags. Jenkins runs the .NET unit tests in a .NET 9 SDK
 container on Garl, archives their TRX report, and tests the published `latest`

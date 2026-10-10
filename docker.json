@@ -1,16 +1,16 @@
 {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "namespace": "$DOCKER_NAMESPACE",
     "image": "$DOCKER_IMAGE",
     "context": ".",
     "targets": [
         {
-            "id": "linux-amd64",
+            "tag": "linux-amd64",
             "dockerfile": "linux/Dockerfile",
             "runner": "ubuntu-latest"
         },
         {
-            "id": "windows-2019",
+            "tag": "windows-ltsc2019",
             "dockerfile": "windows/Dockerfile",
             "runner": "windows-latest"
         }
