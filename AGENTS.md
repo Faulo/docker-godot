@@ -12,7 +12,11 @@ Always select Docker daemons explicitly: use `--context linux` or `--context win
 
 Build, tag, overwrite, or remove only images in the disposable `tmp/` namespace. Treat images in every other namespace as published artifacts.
 
-### Entry points and implementation
+### Command entry points
+
+Add project `bin` directories to `PATH`, preserving existing entries. Use shims as shorthands for explicit subcommands: ShimGen executables on Windows and executable shell wrappers with `exec` on Linux. Support direct `docker exec` invocation.
+
+### Implementation
 
 Keep Dockerfile comments focused on non-obvious constraints and reasons. Preserve each file's shell conventions: PowerShell in Windows Dockerfiles, POSIX shell in Linux Dockerfiles, and batch in `.bat` files.
 
@@ -23,18 +27,6 @@ Use the Idea MCP to inspect source files for warnings and optimizations. Lint th
 Use the patterns in `C:\Webserver\dockerfile-templates` when applicable.
 
 Update `README.md` whenever image contents, prerequisites, or public commands change.
-
-The Windows runtime uses the full Windows family of `faulo/choco` with the
-matching OS tag. Install nuspec dependencies and any package tools through
-`choco-install`; maintain native-installer and shared compatibility fixes in
-[Faulo/docker-choco](https://github.com/Faulo/docker-choco). Report installation
-stalls or failures upstream with the package ID/version, base tag/digest, host
-Windows build and isolation mode, exact command/nuspec, complete relevant logs,
-exit code or timeout, and a minimal fresh-container reproduction without
-credentials. Link the upstream issue from the migration ticket and keep the
-migration blocked until the shared fix is available and validated. Do not add
-manual-install bypasses, suppress package scripts, fabricate package records,
-or duplicate shared compatibility patches downstream.
 
 ### Build and validation
 
