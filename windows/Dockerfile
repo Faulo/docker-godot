@@ -1,5 +1,4 @@
-# Pin the LTSC 2019 member; newer runners otherwise select LTSC 2022 from the family tag.
-ARG WINDOWS_BASE=faulo/choco:windows@sha256:0e3a3e02b4646c35f4e5270008358f56ea925098fdf180f5cf297f77af41fa32
+ARG WINDOWS_BASE=faulo/choco:windows-ltsc2019
 
 # Keep the SDK stage small enough for Hyper-V-isolated CI runners.
 FROM mcr.microsoft.com/dotnet/sdk:9.0-nanoserver-1809 AS build
