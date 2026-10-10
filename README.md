@@ -10,13 +10,15 @@ Both image variants provide:
 - Blender selected by `BLENDER_VERSION`, when configured.
 - A `godot` launcher that installs and starts the selected versions and reports readiness to the health check.
 
-The Windows runtime derives from `faulo/choco:windows-ltsc2019`, retaining the
+The Windows runtime derives from the LTSC 2019 member of `faulo/choco:windows`, retaining the
 full Windows base needed by game-development applications. The shared base
 supplies Chocolatey, Visual C++ prerequisites, and container compatibility fixes.
 Its `choco-install` command installs `windows/godot.nuspec` to provide the latest
 stable PowerShell 7 release as `pwsh`.
 This allows CI scripts to use modern native-command output and error handling
 instead of Windows PowerShell 5.1 behavior.
+The Dockerfile pins that member's digest so newer Hyper-V build hosts cannot
+silently select LTSC 2022. Update the digest when adopting a newer shared base.
 
 Report Chocolatey native-installer stalls or failures in
 [Faulo/docker-choco](https://github.com/Faulo/docker-choco/issues), where shared
@@ -148,6 +150,16 @@ forwarded device when the host and container runtime support their graphics or
 compute API.
 
 ## Local Build and Test
+
+GitHub uses the fleet caller for `Faulo/workflows-docker@v2`; `docker.json`
+selects native Linux amd64 and full Windows LTSC 2019 builds. Publication names
+resolve from the tracked `.env`, independently of the Docker Hub login username.
+Only `faulo/godot:latest` is published. Docker selects the platform from that
+manifest; historical platform/LTSC suffix tags are no longer refreshed.
+The shared workflow verifies digests and platform metadata and deletes its
+run-specific staging tags. Jenkins runs the .NET unit tests in a .NET 9 SDK
+container on Garl, archives their TRX report, and tests the published `latest`
+image on both Garl and Dende.
 
 The launcher unit tests run directly on .NET and do not require Docker:
 

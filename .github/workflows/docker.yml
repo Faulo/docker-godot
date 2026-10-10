@@ -1,67 +1,24 @@
 name: Docker
 
 on:
-    push:
-        branches:
-            - "main"
-        paths:
-            - "common/**"
-            - "linux/**"
-            - "windows/**"
-            - ".github/workflows/docker.yml"
-    workflow_dispatch:
-    schedule:
-        - cron: "17 3 1 * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 1 * *"
 
 permissions:
-    contents: read
+  contents: read
 
 concurrency:
-    group: docker-publish
-    cancel-in-progress: false
+  group: docker-publish
+  cancel-in-progress: false
 
 jobs:
-    test:
-        runs-on: ubuntu-24.04
-        timeout-minutes: 10
-        steps:
-            - name: Checkout
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-            - name: Set up .NET
-              uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-              with:
-                  dotnet-version: "9.0.x"
-            - name: Restore
-              run: dotnet restore docker-godot.sln
-            - name: Test
-              run: dotnet test docker-godot.sln --configuration Release --no-restore
-
-    configuration:
-        runs-on: ubuntu-24.04
-        timeout-minutes: 5
-        outputs:
-            image: ${{steps.image.outputs.DOCKER_IMAGE}}
-        steps:
-            - name: Checkout
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-            - name: Read image name
-              id: image
-              shell: bash
-              run: grep -m1 '^DOCKER_IMAGE=' .env >> "${GITHUB_OUTPUT}"
-
-    publish:
-        needs:
-            - configuration
-            - test
-        uses: Faulo/workflows-docker/.github/workflows/publish.yml@v1
-        with:
-            image: ${{needs.configuration.outputs.image}}
-            linux_context: .
-            windows_context: .
-            windows_variants: >-
-                [
-                  {"tag":"windows-ltsc2019","build_args":{"OS_BASE":"ltsc2019"}}
-                ]
-        secrets:
-            DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
-            DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
+  docker:
+    uses: Faulo/workflows-docker/.github/workflows/docker.yml@v2
+    with:
+      config: docker.json
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

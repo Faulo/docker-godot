@@ -171,18 +171,10 @@ BeforeAll {
             )
             $createArguments += $keepAliveCommand
             Invoke-Docker -Context $Context -Arguments $createArguments
-            Invoke-Docker -Context $Context -Arguments @('container', 'start', $container)
             $fixtureDirectory = $Os -eq 'windows' ? 'C:/fixture' : '/fixture'
-            if ($Os -eq 'windows') {
-                Invoke-Docker -Context $Context -Arguments @(
-                    'container', 'exec', $container,
-                    'pwsh', '-NoLogo', '-NoProfile', '-NonInteractive', '-Command',
-                    "New-Item -ItemType Directory -Path '$fixtureDirectory' -Force | Out-Null"
-                )
-            } else {
-                Invoke-Docker -Context $Context -Arguments @('container', 'exec', $container, 'mkdir', '-p', $fixtureDirectory)
-            }
-            Invoke-Docker -Context $Context -Arguments @('container', 'cp', (Join-Path $stagingDirectory '.'), "${container}:${fixtureDirectory}")
+            # Hyper-V containers only support filesystem copies while stopped.
+            Invoke-Docker -Context $Context -Arguments @('container', 'cp', $stagingDirectory, "${container}:${fixtureDirectory}")
+            Invoke-Docker -Context $Context -Arguments @('container', 'start', $container)
             if ($Os -eq 'windows') {
                 Invoke-Docker -Context $Context -Arguments @(
                     'container', 'exec', $container,

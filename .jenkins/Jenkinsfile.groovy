@@ -8,6 +8,20 @@ pipeline {
     }
 
     stages {
+        stage('Unit Tests') {
+            agent { label 'Garl' }
+            steps {
+                checkout scm
+                timeout(time: 10, unit: 'MINUTES') {
+                    exec '''docker --host unix:///var/run/docker.sock run --rm --volumes-from "$HOSTNAME" --workdir "$WORKSPACE" mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim dotnet test docker-godot.sln --configuration Release --logger "trx;LogFileName=unit-tests.trx" --results-directory .reports/unit-tests'''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: '.reports/unit-tests/*.trx', allowEmptyArchive: false
+                }
+            }
+        }
         stage('Integration Tests') {
             steps {
                 script {
