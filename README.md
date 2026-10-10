@@ -10,11 +10,23 @@ Both image variants provide:
 - Blender selected by `BLENDER_VERSION`, when configured.
 - A `godot` launcher that installs and starts the selected versions and reports readiness to the health check.
 
-The Windows image retains the full Windows base needed by game-development
-applications and uses a .NET Framework-compatible Chocolatey release plus a
-package manifest to provide the latest stable PowerShell 7 release as `pwsh`.
+The Windows runtime derives from `faulo/choco:windows-ltsc2019`, retaining the
+full Windows base needed by game-development applications. The shared base
+supplies Chocolatey, Visual C++ prerequisites, and container compatibility fixes.
+Its `choco-install` command installs `windows/godot.nuspec` to provide the latest
+stable PowerShell 7 release as `pwsh`.
 This allows CI scripts to use modern native-command output and error handling
 instead of Windows PowerShell 5.1 behavior.
+
+Report Chocolatey native-installer stalls or failures in
+[Faulo/docker-choco](https://github.com/Faulo/docker-choco/issues), where shared
+installer fixes are maintained. Include the package ID/version, base image
+tag/digest, host Windows build and isolation mode, exact command/manifest,
+relevant complete logs, exit code or timeout, and a fresh-container reproduction
+without credentials. Link the report from the migration issue and leave the
+migration blocked until the shared fix is available and validated. Do not bypass
+the package installer with manual downloads, alternative installers, suppressed
+scripts, fabricated package records, or downstream compatibility patches.
 
 The Linux runtime uses the `debian:trixie-slim` base image.
 
@@ -146,6 +158,11 @@ dotnet test docker-godot.sln --configuration Release
 The tests cover version selection, release-list parsing, checksum verification,
 Godot editor-settings updates, process argument forwarding, platform artifact
 names, and launcher health state.
+
+Both Dockerfiles publish the solution with `dotnet publish --runtime <rid>`.
+The .NET 9 SDK defaults publishing to Release; the launcher project defines
+self-contained single-file packaging, an app host, and no debug symbols when a
+runtime identifier is supplied.
 
 The local setup expects explicitly named `linux` and `windows` Docker contexts. Both builds use the repository root as their build context:
 

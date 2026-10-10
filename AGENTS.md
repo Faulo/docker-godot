@@ -24,6 +24,18 @@ Use the patterns in `C:\Webserver\dockerfile-templates` when applicable.
 
 Update `README.md` whenever image contents, prerequisites, or public commands change.
 
+The Windows runtime uses the full Windows family of `faulo/choco` with the
+matching OS tag. Install nuspec dependencies and any package tools through
+`choco-install`; maintain native-installer and shared compatibility fixes in
+[Faulo/docker-choco](https://github.com/Faulo/docker-choco). Report installation
+stalls or failures upstream with the package ID/version, base tag/digest, host
+Windows build and isolation mode, exact command/nuspec, complete relevant logs,
+exit code or timeout, and a minimal fresh-container reproduction without
+credentials. Link the upstream issue from the migration ticket and keep the
+migration blocked until the shared fix is available and validated. Do not add
+manual-install bypasses, suppress package scripts, fabricate package records,
+or duplicate shared compatibility patches downstream.
+
 ### Build and validation
 
 Builds can be large, network-dependent, and platform-specific. A Windows image requires a compatible Windows daemon. Run every applicable target, but do not conceal unavailable coverage: report each skipped target and the concrete reason it could not run.

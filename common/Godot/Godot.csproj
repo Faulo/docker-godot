@@ -9,6 +9,12 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <RootNamespace>Godot</RootNamespace>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+        <SelfContained>true</SelfContained>
+        <PublishSingleFile>true</PublishSingleFile>
+        <UseAppHost>true</UseAppHost>
+        <DebugType>None</DebugType>
+    </PropertyGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="Godot.Tests" />
     </ItemGroup>

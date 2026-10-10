@@ -4,13 +4,7 @@ WORKDIR /solution
 
 COPY . .
 
-RUN dotnet publish \
-        --configuration Release \
-        --runtime linux-x64 \
-        --self-contained true \
-        --property:PublishSingleFile=true \
-        --property:UseAppHost=true \
-        --property:DebugType=None
+RUN dotnet publish --runtime linux-x64
 
 FROM debian:trixie-slim
 
