@@ -159,15 +159,21 @@ The workflow publishes `faulo/godot:latest` as a combined platform manifest, plu
 Configuration schema version 2 uses each target's `tag` as that suffix.
 Historical tags with other suffixes are no longer refreshed.
 The shared workflow verifies digests and platform metadata and deletes its
-run-specific staging tags. Jenkins runs the .NET unit tests in a .NET 9 SDK
-container on Garl, archives their TRX report, and tests the published `latest`
-image on both Garl and Dende.
+run-specific staging tags. Jenkins runs the .NET unit tests in the
+`mcr.microsoft.com/dotnet/sdk:9.0` container on an agent matching `docker && linux`,
+publishes their JUnit reports, and tests the published `latest` image on both
+Garl and Dende.
 
 The launcher unit tests run directly on .NET and do not require Docker:
 
 ```text
-dotnet test docker-godot.sln --configuration Release
+dotnet test --logger junit
 ```
+
+The test project includes `JunitXml.TestLogger`, which writes
+`common/Godot.Tests/TestResults/TestResults.xml` for Jenkins to collect.
+Generated `TestResults` directories are excluded from Git and Docker build
+contexts.
 
 The tests cover version selection, release-list parsing, checksum verification,
 Godot editor-settings updates, process argument forwarding, platform artifact
@@ -185,10 +191,12 @@ docker --context linux build --pull --tag tmp/godot:latest --file linux/Dockerfi
 docker --context windows build --pull --tag tmp/godot:latest --file windows/Dockerfile .
 ```
 
-Integration tests use Pester 6 and only target images in the selected namespace. Install Pester and run the complete Godot 4.0 through 4.7 matrix against each candidate image:
+Integration tests use Pester 6 and only target images in the selected namespace.
+The runner installs its PowerShell dependencies from
+`.jenkins/RequiredModules.psd1`. Run the complete Godot 4.0 through 4.7 matrix
+against each candidate image:
 
 ```text
-pwsh -NoLogo -NoProfile -File .jenkins/Install-Pester.ps1 -MajorVersion 6
 pwsh -NoLogo -NoProfile -File .jenkins/Invoke-IntegrationTests.ps1 -Namespace tmp -Context linux
 pwsh -NoLogo -NoProfile -File .jenkins/Invoke-IntegrationTests.ps1 -Namespace tmp -Context windows
 ```

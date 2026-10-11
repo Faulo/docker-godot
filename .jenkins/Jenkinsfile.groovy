@@ -9,17 +9,15 @@ pipeline {
 
     stages {
         stage('Unit Tests') {
-            agent { label 'Garl' }
-            steps {
-                checkout scm
-                timeout(time: 10, unit: 'MINUTES') {
-                    exec '''docker --host unix:///var/run/docker.sock run --rm --volumes-from "$HOSTNAME" --workdir "$WORKSPACE" mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim dotnet test docker-godot.sln --configuration Release --logger "trx;LogFileName=unit-tests.trx" --results-directory .reports/unit-tests'''
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/dotnet/sdk:9.0'
+                    label 'docker && linux'
                 }
             }
-            post {
-                always {
-                    archiveArtifacts artifacts: '.reports/unit-tests/*.trx', allowEmptyArchive: false
-                }
+            steps {
+                exec 'dotnet test --logger junit'
+                junit(testResults: '**/TestResults.xml', allowEmptyResults: true)
             }
         }
         stage('Integration Tests') {
