@@ -156,8 +156,10 @@ selects native Linux amd64 and full Windows LTSC 2019 builds. Publication names
 resolve from the tracked `.env`, independently of the Docker Hub login username.
 The workflow publishes `faulo/godot:latest` as a combined platform manifest, plus
 `latest-linux-amd64` and `latest-windows-ltsc2019` to select a particular target.
-Configuration schema version 2 uses each target's `tag` as that suffix.
-Historical tags with other suffixes are no longer refreshed.
+Configuration schema version `3` uses recursive product, OS, and architecture
+or release axes. It also publishes `latest-linux` and `latest-windows` as
+intermediate OS indices without adding builds. Unconfigured historical tags
+are retained without updates.
 The shared workflow verifies digests and platform metadata and deletes its
 run-specific staging tags. Jenkins runs the .NET unit tests in the
 `mcr.microsoft.com/dotnet/sdk:9.0` container on an agent matching `docker && linux`,
