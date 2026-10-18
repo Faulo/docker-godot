@@ -1,8 +1,36 @@
-# Godot Docker Image
+# Godot for Linux and Windows containers
 
-This repository builds Linux and Windows Docker images that install the requested stable Godot and optional Blender versions when the `godot` launcher is invoked. Downloads are stored in volumes and reused by later containers.
+[![Docker](https://github.com/Faulo/docker-godot/actions/workflows/docker.yml/badge.svg?branch=main)](https://github.com/Faulo/docker-godot/actions/workflows/docker.yml)
+[![Docker image updated](https://img.shields.io/docker/last-updated/faulo/godot/latest)](https://hub.docker.com/r/faulo/godot/tags?name=latest)
+[![License: MIT](https://img.shields.io/github/license/Faulo/docker-godot)](LICENSE)
+[![Platforms: Linux and Windows amd64](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20amd64-0078D4)](#available-images)
 
-## Image Contents
+[`faulo/godot`](https://hub.docker.com/r/faulo/godot) installs and runs stable Godot releases, matching export templates, and optional Blender versions in Linux and Windows containers. Reuse downloads through named volumes and select the release series required by each project.
+
+## Available images
+
+| Tag | Platform | Runtime base |
+| --- | --- | --- |
+| `latest` | Linux amd64 and Windows amd64 | Debian Trixie Slim; full Windows LTSC 2019 |
+| `latest-linux`, `latest-linux-amd64` | Linux amd64 | Debian Trixie Slim |
+| `latest-windows`, `latest-windows-ltsc2019` | Windows amd64 | Full Windows LTSC 2019 through `faulo/choco` |
+
+Use `latest` for automatic platform selection, or an explicit platform tag when
+needed. Windows containers require a compatible Windows host. Tags receive
+updates in place; pin a digest when you require an exact image.
+
+## Quick start
+
+Run a standard Godot release:
+
+```text
+docker run --rm --env GODOT_VERSION=4 faulo/godot:latest godot --version
+```
+
+The first invocation downloads the selected editor and matching export
+templates. Mount the volumes described below to reuse them across containers.
+
+## Included tools
 
 Both image variants provide:
 
@@ -10,45 +38,18 @@ Both image variants provide:
 - Blender selected by `BLENDER_VERSION`, when configured.
 - A `godot` launcher that installs and starts the selected versions and reports readiness to the health check.
 
-The Windows runtime derives from the LTSC 2019 member of `faulo/choco:windows`, retaining the
-full Windows base needed by game-development applications. The shared base
-supplies Chocolatey, Visual C++ prerequisites, and container compatibility fixes.
-Its `choco-install` command installs `windows/godot.nuspec` to provide the latest
-stable PowerShell 7 release as `pwsh`.
-This allows CI scripts to use modern native-command output and error handling
-instead of Windows PowerShell 5.1 behavior.
-The Dockerfile pins that member's digest so newer Hyper-V build hosts cannot
-silently select LTSC 2022. Update the digest when adopting a newer shared base.
+The Windows variant includes Chocolatey, Visual C++ prerequisites, container
+compatibility fixes, and PowerShell 7 through the shared
+[`faulo/choco` base](https://github.com/Faulo/docker-choco).
+The Linux variant uses Debian Trixie Slim.
 
-Report Chocolatey native-installer stalls or failures in
-[Faulo/docker-choco](https://github.com/Faulo/docker-choco/issues), where shared
-installer fixes are maintained. Include the package ID/version, base image
-tag/digest, host Windows build and isolation mode, exact command/manifest,
-relevant complete logs, exit code or timeout, and a fresh-container reproduction
-without credentials. Link the report from the migration issue and leave the
-migration blocked until the shared fix is available and validated. Do not bypass
-the package installer with manual downloads, alternative installers, suppressed
-scripts, fabricated package records, or downstream compatibility patches.
+The launcher supports standard Godot builds. Godot .NET/Mono builds are not supported.
 
-The Linux runtime uses the `debian:trixie-slim` base image.
+## Running Godot
 
-The image supports standard Godot builds. Godot .NET/Mono builds and a selector for choosing between standard and .NET builds will be added separately.
-
-## Runtime Setup
-
-The image is designed for direct one-off use:
-
-```text
-docker run --rm --env GODOT_VERSION=4 faulo/godot:latest godot --version
-```
-
-The image deliberately has no `ENTRYPOINT`. Its default command is
-`["godot", "help"]`, and an explicit Docker command replaces that default
-completely. This is a compatibility guarantee for the Jenkins Docker Pipeline
-plugin: an unmodified `docker.image(image).inside { ... }` can start its `cat`
-keeper on Linux or `cmd.exe` keeper on Windows and run build steps with
-`docker exec`. When overriding the command for launcher use, invoke `godot`
-explicitly as shown above.
+The image has no entrypoint and defaults to `godot help`. An explicit Docker
+command replaces that default. Invoke `godot` explicitly when you want the
+launcher; other commands can run directly, including through `docker exec`.
 
 The working directory is `/godot` on Linux and `C:/godot` on Windows. The image-owned `godot` executable lives there, and that directory is prepended to `PATH`.
 
@@ -90,7 +91,7 @@ Selectors contain one to three numeric components and use prefix-compatible sema
 
 Godot itself labels a release without a patch component, such as `4.3-stable`, where semantic versioning would normally write `4.3.0`. The selector still treats `GODOT_VERSION=4.3` as the complete `4.3.x` series and `GODOT_VERSION=4` as the complete `4.x.y` series.
 
-Godot installations use the exact version identifier expected by their export templates. For example, standard Godot `4.3` is stored under `4.3.stable`. A future .NET installation would use a distinct identifier such as `4.3.stable.mono`.
+Godot installations use the exact version identifier expected by their export templates. For example, standard Godot `4.3` is stored under `4.3.stable`.
 
 Floating selectors are resolved each time the launcher starts. If a newer matching stable version has been published, it is installed alongside earlier versions rather than replacing them.
 
@@ -114,6 +115,11 @@ services:
       - godot-binaries:/godot/binaries
       - godot-templates:/godot/export_templates
       - blender:/blender
+
+volumes:
+  godot-binaries:
+  godot-templates:
+  blender:
 ```
 
 On Windows:
@@ -131,6 +137,11 @@ services:
       - godot-binaries:C:/godot/binaries
       - godot-templates:C:/godot/export_templates
       - blender:C:/blender
+
+volumes:
+  godot-binaries:
+  godot-templates:
+  blender:
 ```
 
 Godot's standard export-template directory is linked to `/godot/export_templates` on Linux and `C:/godot/export_templates` on Windows. Each installed Godot version has its own binary and export-template directory named with the exact template identifier. Each Blender version is placed in its own directory named with its full semantic version.
@@ -149,58 +160,54 @@ CPU-bound. Blender rendering or other explicitly GPU-backed tasks can use the
 forwarded device when the host and container runtime support their graphics or
 compute API.
 
-## Local Build and Test
+## Maintenance and updates
 
-GitHub uses the fleet caller for `Faulo/workflows-docker@v3`; `docker.json`
-selects native Linux amd64 and full Windows LTSC 2019 builds. Publication names
-resolve from the tracked `.env`, independently of the Docker Hub login username.
-The workflow publishes `faulo/godot:latest` as a combined platform manifest, plus
-`latest-linux-amd64` and `latest-windows-ltsc2019` to select a particular target.
-Configuration schema version `3` uses recursive product, OS, and architecture
-or release axes. It also publishes `latest-linux` and `latest-windows` as
-intermediate OS indices without adding builds. Unconfigured historical tags
-are retained without updates.
-The shared workflow verifies digests and platform metadata and deletes its
-run-specific staging tags. Jenkins runs the .NET unit tests in the
-`mcr.microsoft.com/dotnet/sdk:9.0` container on an agent matching `docker && linux`,
-publishes their JUnit reports, and tests the published `latest` image on both
-Garl and Dende.
+Linux amd64 and full Windows LTSC 2019 images are rebuilt monthly to pick up
+base-image and dependency updates. Use `docker build --pull` when rebuilding a
+downstream image, or recreate containers with a newly pulled image.
 
-The launcher unit tests run directly on .NET and do not require Docker:
+Godot and Blender version selection happens at runtime. Floating selectors
+adopt newer matching stable releases on the next launcher invocation; exact
+selectors keep the requested release. Existing downloads remain in their
+versioned directories until you remove them.
+
+## Tests and development
+
+Run the launcher unit tests from the repository root with the .NET 9 SDK:
 
 ```text
-dotnet test --logger junit
+dotnet test common/Godot.Tests/Godot.Tests.csproj
 ```
 
-The test project includes `JunitXml.TestLogger`, which writes
-`common/Godot.Tests/TestResults/TestResults.xml` for Jenkins to collect.
-Generated `TestResults` directories are excluded from Git and Docker build
-contexts.
+The unit suite requires no Docker engine. It covers version selection,
+release-list parsing, checksum verification, editor settings, argument
+forwarding, platform artifacts, and launcher readiness.
 
-The tests cover version selection, release-list parsing, checksum verification,
-Godot editor-settings updates, process argument forwarding, platform artifact
-names, and launcher health state.
+The repository also includes image integration tests for supported stable Godot
+series, missing-project errors, fixture imports, and Windows executable export.
+They require Pester and a compatible container engine.
 
-Both Dockerfiles publish the solution with `dotnet publish --runtime <rid>`.
-The .NET 9 SDK defaults publishing to Release; the launcher project defines
-self-contained single-file packaging, an app host, and no debug symbols when a
-runtime identifier is supplied.
-
-The local setup expects explicitly named `linux` and `windows` Docker contexts. Both builds use the repository root as their build context:
+Both Dockerfiles use the repository root as their build context. Run the
+appropriate command on an engine configured for the selected container OS:
 
 ```text
-docker --context linux build --pull --tag tmp/godot:latest --file linux/Dockerfile .
-docker --context windows build --pull --tag tmp/godot:latest --file windows/Dockerfile .
+docker build --pull --tag tmp/godot:latest --file linux/Dockerfile .
+docker build --pull --tag tmp/godot:latest --file windows/Dockerfile .
 ```
 
-Integration tests use Pester 6 and only target images in the selected namespace.
-The runner installs its PowerShell dependencies from
-`.jenkins/RequiredModules.psd1`. Run the complete Godot 4.0 through 4.7 matrix
-against each candidate image:
+## Support and contributions
 
-```text
-pwsh -NoLogo -NoProfile -File .jenkins/Invoke-IntegrationTests.ps1 -Namespace tmp -Context linux
-pwsh -NoLogo -NoProfile -File .jenkins/Invoke-IntegrationTests.ps1 -Namespace tmp -Context windows
-```
+[Open an issue](https://github.com/Faulo/docker-godot/issues) with the image tag
+or digest, Godot and Blender selectors, container OS, and a minimal project or
+command that reproduces the problem. For Windows, include the host version and
+isolation mode. Remove credentials and private project data from logs.
 
-The test configuration in `.env` supplies the persistent Godot, export-template, and Blender volumes for each platform. The integration suite verifies the platform runtime, installs every currently supported stable Godot series, rejects project-only commands outside a project, imports the fixture project, and exports its Windows executable.
+Pull requests are welcome. Include tests for launcher behavior changes and
+update the documentation when public options change.
+
+## License
+
+The original code, Dockerfiles, scripts, and documentation are licensed under
+the [MIT License](LICENSE). Godot, Blender, and other bundled or downloaded
+software retain their respective licenses. Windows base-image licensing
+continues to apply to the Windows variant.
