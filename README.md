@@ -1,9 +1,6 @@
 # Godot for Linux and Windows containers
 
-[![Docker](https://github.com/Faulo/docker-godot/actions/workflows/docker.yml/badge.svg?branch=main)](https://github.com/Faulo/docker-godot/actions/workflows/docker.yml)
-[![Docker image updated](https://img.shields.io/docker/last-updated/faulo/godot/latest)](https://hub.docker.com/r/faulo/godot/tags?name=latest)
-[![License: MIT](https://img.shields.io/github/license/Faulo/docker-godot)](LICENSE)
-[![Platforms: Linux and Windows amd64](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20amd64-0078D4)](#available-images)
+[![Docker](https://github.com/Faulo/docker-godot/actions/workflows/docker.yml/badge.svg?branch=main)](https://github.com/Faulo/docker-godot/actions/workflows/docker.yml) [![Docker image updated](https://img.shields.io/docker/last-updated/faulo/godot/latest)](https://hub.docker.com/r/faulo/godot/tags?name=latest) [![License: MIT](https://img.shields.io/github/license/Faulo/docker-godot)](LICENSE) [![Platforms: Linux and Windows amd64](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20amd64-0078D4)](#available-images)
 
 [`faulo/godot`](https://hub.docker.com/r/faulo/godot) installs and runs stable Godot releases, matching export templates, and optional Blender versions in Linux and Windows containers. Reuse downloads through named volumes and select the release series required by each project.
 
