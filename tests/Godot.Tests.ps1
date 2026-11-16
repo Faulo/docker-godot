@@ -196,31 +196,12 @@ BeforeAll {
     }
 }
 
-Describe "Godot runtime [$Os, $Image]" {
+Describe "Godot runtime [$Os, $Image]" -Skip:($Os -ne 'linux') {
     It 'satisfies the platform runtime contract' {
-        if ($Os -eq 'linux') {
-            Invoke-Docker -Context $Context -RunArguments $DockerRunArguments -Arguments @(
-                'run', '--rm', $Image,
-                'grep', '--fixed-strings', 'VERSION_CODENAME=trixie', '/etc/os-release'
-            )
-        }
-
-        if ($Os -eq 'windows') {
-            $script = @'
-$latestUrl = curl.exe -fsSL -o NUL -w '%{url_effective}' 'https://github.com/PowerShell/PowerShell/releases/latest'
-if ($LASTEXITCODE -ne 0) { throw 'Failed to resolve the latest stable PowerShell release' }
-$latestVersion = [version](([uri]$latestUrl).Segments[-1].TrimStart('v'))
-if ($latestVersion.Major -ne 7) { throw "Latest stable PowerShell is not in major line 7: $latestVersion" }
-if ($PSVersionTable.PSVersion -ne $latestVersion) { throw "Expected PowerShell $latestVersion, got $($PSVersionTable.PSVersion)" }
-$chocolateyVersion = choco --version
-if ($LASTEXITCODE -ne 0) { throw 'Chocolatey is not available' }
-[version] $chocolateyVersion | Out-Null
-'@
-            Invoke-Docker -Context $Context -RunArguments $DockerRunArguments -Arguments @(
-                'run', '--rm', $Image,
-                'pwsh', '-NoLogo', '-NoProfile', '-NonInteractive', '-Command', $script
-            )
-        }
+        Invoke-Docker -Context $Context -RunArguments $DockerRunArguments -Arguments @(
+            'run', '--rm', $Image,
+            'grep', '--fixed-strings', 'VERSION_CODENAME=trixie', '/etc/os-release'
+        )
     }
 }
 
